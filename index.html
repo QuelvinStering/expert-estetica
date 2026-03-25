@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpertEstética SaaS - TESTE DRIVE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .view-section { display: none; }
+        .view-section.active { display: flex; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        .sidebar-item.active { background-color: #f5f3ff; color: #7c3aed; border-right: 4px solid #7c3aed; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="h-screen overflow-hidden">
+
+    <!-- 1. TELA DE LOGIN -->
+    <section id="view-login" class="view-section active h-full w-full items-center justify-center bg-slate-50">
+        <div class="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100">
+            <div class="text-center mb-8">
+                <div class="inline-flex p-4 bg-purple-600 rounded-2xl text-white mb-4 shadow-lg"><i data-lucide="sparkles"></i></div>
+                <h2 class="text-3xl font-black text-slate-900">Expert<span class="text-purple-600">Estética</span></h2>
+                <p class="text-slate-500 font-medium text-sm">Painel de Demonstração SaaS</p>
+            </div>
+            <form id="login-form" class="space-y-5">
+                <input type="email" id="email" placeholder="E-mail" required class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-medium">
+                <input type="password" id="pass" placeholder="Senha" required class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-medium">
+                <button type="submit" class="w-full py-4 bg-purple-600 text-white font-bold rounded-2xl shadow-xl hover:bg-purple-700 transition">ENTRAR NO SISTEMA</button>
+            </form>
+            <div class="mt-6 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                Logue como Super Admin para ver o Painel Global
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. PAINEL SUPER ADMIN (VISÃO GLOBAL) -->
+    <section id="view-super-admin" class="view-section h-full w-full">
+        <aside class="w-72 bg-slate-900 text-white flex flex-col p-6 shadow-2xl">
+            <div class="flex items-center gap-3 mb-10"><i data-lucide="shield-check" class="text-purple-500"></i> <span class="font-black text-xl">SUPER ADMIN</span></div>
+            <nav class="flex-1 space-y-2">
+                <a href="#" class="flex items-center gap-3 px-4 py-3 bg-white/10 rounded-xl text-white font-bold"><i data-lucide="grid"></i> Clínicas Ativas</a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white"><i data-lucide="trending-up"></i> Faturamento MRR</a>
+            </nav>
+            <button onclick="logout()" class="py-3 text-red-400 font-bold flex items-center gap-2"><i data-lucide="log-out"></i> SAIR</button>
+        </aside>
+        <main class="flex-1 p-10 overflow-y-auto">
+            <h1 class="text-3xl font-black text-slate-800 mb-8">Gestão de Tenancies (SaaS)</h1>
+            <div class="grid grid-cols-3 gap-6 mb-10">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border">
+                    <p class="text-[10px] font-black text-slate-400 uppercase">Clínicas Totais</p>
+                    <h3 class="text-4xl font-black text-slate-800">12</h3>
+                </div>
+                <div class="bg-orange-50 p-6 rounded-3xl border border-orange-100">
+                    <p class="text-[10px] font-black text-orange-400 uppercase">Pendentes</p>
+                    <h3 class="text-4xl font-black text-orange-700">03</h3>
+                </div>
+                <div class="bg-green-50 p-6 rounded-3xl border border-green-100">
+                    <p class="text-[10px] font-black text-green-400 uppercase">Receita Mensal</p>
+                    <h3 class="text-4xl font-black text-green-700">R$ 14.850</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <tr><th class="p-6">Unidade</th><th class="p-6">Responsável</th><th class="p-6">Plano</th><th class="p-6">Status</th><th class="p-6 text-right">Ação</th></tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-6 font-black">Expert Matriz SP</td>
+                            <td class="p-6 text-sm text-slate-500">Ricardo Silva</td>
+                            <td class="p-6 text-xs font-bold">EXPANSÃO</td>
+                            <td class="p-6"><span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase">ATIVO</span></td>
+                            <td class="p-6 text-right"><button onclick="loginAsClinic('Expert Matriz SP')" class="text-purple-600 font-black text-xs uppercase hover:underline">Acessar Unidade</button></td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-6 font-black">Clínica Bella Rose</td>
+                            <td class="p-6 text-sm text-slate-500">Ana Costa</td>
+                            <td class="p-6 text-xs font-bold">EQUIPE</td>
+                            <td class="p-6"><span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-[10px] font-black uppercase">PENDENTE</span></td>
+                            <td class="p-6 text-right"><button class="bg-green-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">APROVAR AGORA</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </section>
+
+    <!-- 3. VISÃO DA CLÍNICA (SISTEMA ISOLADO) -->
+    <section id="view-clinic" class="view-section h-full w-full">
+        <aside class="w-64 bg-white border-r flex flex-col shadow-2xl z-20 p-6">
+            <div class="mb-10 text-center">
+                <div class="w-12 h-12 bg-purple-600 rounded-2xl mx-auto mb-3 flex items-center justify-center text-white"><i data-lucide="sparkles"></i></div>
+                <h2 id="display-clinic-name" class="font-black text-slate-800 truncate uppercase text-xs tracking-tight">Clínica Expert</h2>
+                <span class="text-[9px] font-black bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">UNIDADE ATIVA</span>
+            </div>
+            <nav class="flex-1 space-y-1">
+                <a href="#" onclick="showTab('dashboard')" class="sidebar-item active flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 transition"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+                <a href="#" onclick="showTab('agenda')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 transition"><i data-lucide="calendar" class="w-4 h-4"></i> Agenda</a>
+                <a href="#" onclick="showTab('pacientes')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 transition"><i data-lucide="users" class="w-4 h-4"></i> Pacientes</a>
+                <a href="#" onclick="showTab('financeiro')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 transition"><i data-lucide="dollar-sign" class="w-4 h-4"></i> Financeiro</a>
+                <a href="#" onclick="showTab('crm')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 transition"><i data-lucide="target" class="w-4 h-4"></i> CRM</a>
+            </nav>
+            <button onclick="logout()" class="p-4 text-xs font-bold text-slate-400 hover:text-red-500 transition border-t mt-4 flex items-center gap-2"><i data-lucide="log-out" class="w-4 h-4"></i> SAIR DA UNIDADE</button>
+        </aside>
+
+        <main class="flex-1 flex flex-col overflow-hidden bg-slate-50">
+            <header class="h-16 bg-white border-b px-8 flex items-center justify-between">
+                <h2 id="tab-title" class="text-sm font-black text-slate-800 uppercase tracking-widest">Dashboard</h2>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold text-slate-400 italic">Unidade: <span class="text-slate-800" id="header-clinic">...</span></span>
+                    <img src="https://ui-avatars.com/api/?background=7c3aed&color=fff&name=Dr" class="w-8 h-8 rounded-full shadow-lg">
+                </div>
+            </header>
+
+            <section class="flex-1 overflow-y-auto p-8">
+                <!-- ABA: DASHBOARD -->
+                <div id="tab-dashboard" class="tab-content active space-y-8">
+                    <div class="grid grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-3xl shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Faturamento</p><h3 class="text-2xl font-black text-purple-600">R$ 12.450</h3></div>
+                        <div class="bg-white p-6 rounded-3xl shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Pacientes</p><h3 class="text-2xl font-black text-slate-800">142</h3></div>
+                        <div class="bg-white p-6 rounded-3xl shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Consultas Hoje</p><h3 class="text-2xl font-black text-slate-800">08</h3></div>
+                        <div class="bg-white p-6 rounded-3xl shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Ociosidade</p><h3 class="text-2xl font-black text-red-500">14%</h3></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8">
+                        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl h-80"><canvas id="demoChart"></canvas></div>
+                        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl">
+                            <h4 class="font-black text-xs uppercase text-slate-400 mb-6">Próximos da Agenda</h4>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl"><div class="text-xs font-black">09:00 - Maria Silva</div><span class="text-[9px] font-black bg-blue-100 text-blue-600 px-2 py-1 rounded-full uppercase">Botox</span></div>
+                                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl"><div class="text-xs font-black">10:30 - João Souza</div><span class="text-[9px] font-black bg-purple-100 text-purple-600 px-2 py-1 rounded-full uppercase">Lipo</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABA: AGENDA (SIMULAÇÃO) -->
+                <div id="tab-agenda" class="tab-content">
+                    <div class="bg-white rounded-[2rem] shadow-2xl p-0 overflow-hidden border">
+                        <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
+                            <h3 class="font-black text-xs text-slate-800 uppercase tracking-widest">Calendário Inteligente</h3>
+                            <button class="bg-purple-600 text-white text-[10px] px-4 py-2 rounded-xl font-bold">+ NOVO AGENDAMENTO</button>
+                        </div>
+                        <table class="w-full text-left">
+                            <thead class="bg-white text-[9px] font-black text-slate-400 uppercase border-b">
+                                <tr><th class="p-6">Horário</th><th class="p-6">Paciente</th><th class="p-6">Procedimento</th><th class="p-6">Status</th></tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                <tr><td class="p-6 font-black">09:00</td><td class="p-6 font-bold">Maria Silva</td><td class="p-6 text-sm">Toxina Botulínica</td><td class="p-6"><span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[9px] font-black">CONFIRMADO</span></td></tr>
+                                <tr><td class="p-6 font-black">10:30</td><td class="p-6 font-bold">João Souza</td><td class="p-6 text-sm">Limpeza de Pele</td><td class="p-6"><span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[9px] font-black">EM ATENDIMENTO</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- OUTROS MÓDULOS (AVISO) -->
+                <div id="tab-pacientes" class="tab-content text-center py-20 bg-white rounded-[2.5rem] shadow-xl">
+                    <div class="w-20 h-20 bg-slate-100 rounded-full mx-auto mb-6 flex items-center justify-center text-slate-400"><i data-lucide="users" class="w-10 h-10"></i></div>
+                    <h2 class="text-xl font-black text-slate-800 uppercase tracking-widest">Módulo de Pacientes</h2>
+                    <p class="text-slate-400 mt-2 font-medium">Aqui aparecerá a lista completa integrada ao PostgreSQL.</p>
+                </div>
+
+                <!-- CRM KANBAN -->
+                <div id="tab-crm" class="tab-content">
+                    <div class="flex gap-6 overflow-x-auto pb-6">
+                        <div class="min-w-[300px] bg-slate-200/50 p-4 rounded-3xl h-[70vh]">
+                            <h4 class="text-[10px] font-black uppercase text-slate-500 mb-4 px-2">Novos Leads</h4>
+                            <div class="bg-white p-4 rounded-2xl shadow-sm border mb-3"><p class="font-black text-sm">Carla Almeida</p><p class="text-[10px] text-purple-600 font-bold">Botox</p></div>
+                        </div>
+                        <div class="min-w-[300px] bg-slate-200/50 p-4 rounded-3xl h-[70vh]">
+                            <h4 class="text-[10px] font-black uppercase text-slate-500 mb-4 px-2">Avaliação</h4>
+                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-purple-200"><p class="font-black text-sm">Mariana Costa</p><p class="text-[10px] text-blue-500 font-bold">Lipo sem cortes</p></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </section>
+
+    <script>
+        // LOGIN MOCK
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+
+            // Suas credenciais reais para o teste
+            if (email === 'quelvinrojostering16@gmail.com' && pass === 'IABADABADU@2025AUSTRIA') {
+                switchView('view-super-admin');
+            } else if (pass === '123') { // Para testar como clínica comum
+                loginAsClinic('Minha Clínica');
+            } else {
+                alert("Erro: Use as credenciais do Quelvin Rojo!");
+            }
+        });
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            lucide.createIcons();
+            if(viewId === 'view-clinic') initChart();
+        }
+
+        function loginAsClinic(name) {
+            document.getElementById('display-clinic-name').innerText = name;
+            document.getElementById('header-clinic').innerText = name;
+            switchView('view-clinic');
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('tab-title').innerText = tabId;
+        }
+
+        function logout() { location.reload(); }
+
+        function initChart() {
+            const ctx = document.getElementById('demoChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: { labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'], datasets: [{ label: 'Vendas', data: [12, 19, 15, 25, 22], borderColor: '#7c3aed', tension: 0.4 }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+            });
+        }
+
+        window.onload = () => lucide.createIcons();
+    </script>
+</body>
+</html>
