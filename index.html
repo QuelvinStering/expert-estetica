@@ -3,20 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STERING ESTÉTICA SaaS - Offline Version</title>
+    <title>STERING ESTÉTICA SaaS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f9fafb; color: #1f2937; }
-        
-        /* CORREÇÃO DO BUG 1: Exibição rigorosa de views */
-        .view-section { display: none !important; }
-        .view-section.active { display: flex !important; animation: fadeIn 0.3s ease; }
-        
-        .tab-content, .modal-overlay { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        .view-section, .tab-content, .modal-overlay { display: none; }
+        .view-section.active, .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
         .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
         .sidebar-item.active { background-color: #1f2937; color: #a78bfa; border-left: 4px solid #7c3aed; }
         .sidebar-item { border-left: 4px solid transparent; transition: all 0.2s; }
@@ -29,42 +25,63 @@
         .glass-card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); border: 1px solid #f3f4f6; }
         .input-base { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; outline: none; font-size: 0.875rem; transition: border-color 0.2s; }
         .input-base:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); }
-        .btn-primary { background-color: #7c3aed; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; font-size: 0.875rem; transition: background-color 0.2s; border: none; cursor: pointer; }
+        .btn-primary { background-color: #7c3aed; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; font-size: 0.875rem; transition: background-color 0.2s; }
         .btn-primary:hover { background-color: #6d28d9; }
         .badge { padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+        #global-loader { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.8); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 </head>
-<body class="h-screen overflow-hidden text-slate-800">
+<body class="h-screen overflow-hidden flex">
+
+    <!-- GLOBAL LOADER -->
+    <div id="global-loader"><i data-lucide="loader-2" class="w-10 h-10 text-purple-600 animate-spin"></i><p class="mt-4 font-medium text-slate-600 text-sm">Sincronizando com Supabase...</p></div>
+
+    <!-- MODAL DE SETUP SQL (Caso tabelas não existam) -->
+    <div id="modal-sql" class="modal-overlay fixed inset-0 bg-slate-900/80 z-[10000] items-center justify-center p-6">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <h2 class="text-2xl font-bold text-red-600 mb-2 flex items-center gap-2"><i data-lucide="alert-triangle"></i> Banco de Dados não configurado</h2>
+            <p class="text-sm text-slate-600 mb-4">Execute o código abaixo no <strong>SQL Editor</strong> do seu painel Supabase para criar a estrutura do sistema.</p>
+            <textarea readonly class="w-full flex-1 p-4 bg-slate-900 text-green-400 font-mono text-xs rounded-lg outline-none resize-none mb-4">
+-- SCRIPT DE CRIAÇÃO STERING ESTÉTICA SAAS --
+CREATE TABLE clinics ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT NOT NULL, owner_name TEXT NOT NULL, plan TEXT NOT NULL, status TEXT NOT NULL, created_at TIMESTAMP DEFAULT NOW() );
+CREATE TABLE users_clinic ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), clinic_id UUID REFERENCES clinics(id) ON DELETE CASCADE, name TEXT NOT NULL, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, role TEXT NOT NULL, active BOOLEAN DEFAULT TRUE, created_at TIMESTAMP DEFAULT NOW() );
+CREATE TABLE patients ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), clinic_id UUID REFERENCES clinics(id) ON DELETE CASCADE, name TEXT NOT NULL, cpf TEXT NOT NULL, rg TEXT, data_nascimento DATE, telefone TEXT, email TEXT, endereco TEXT, profissao TEXT, convenio TEXT, num_convenio TEXT, responsavel_legal TEXT, responsavel_cpf TEXT, anamnese JSONB, alergias TEXT, medicamentos_uso TEXT, historico_estetico TEXT, foto_url TEXT, created_at TIMESTAMP DEFAULT NOW() );
+CREATE TABLE procedures ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), clinic_id UUID REFERENCES clinics(id) ON DELETE CASCADE, name TEXT NOT NULL, descricao TEXT, valor NUMERIC NOT NULL, duracao_min INT NOT NULL, requer_anamnese BOOLEAN, requer_tcle BOOLEAN, categoria TEXT NOT NULL );
+CREATE TABLE appointments ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), clinic_id UUID REFERENCES clinics(id) ON DELETE CASCADE, patient_id UUID REFERENCES patients(id) ON DELETE CASCADE, procedure_id UUID REFERENCES procedures(id) ON DELETE CASCADE, user_id UUID REFERENCES users_clinic(id), data_hora TIMESTAMP NOT NULL, status TEXT NOT NULL, observacoes TEXT, valor_cobrado NUMERIC );
+CREATE TABLE financial ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), clinic_id UUID REFERENCES clinics(id) ON DELETE CASCADE, appointment_id UUID REFERENCES appointments(id) ON DELETE SET NULL, type TEXT NOT NULL, categoria TEXT NOT NULL, descricao TEXT NOT NULL, valor NUMERIC NOT NULL, data_vencimento DATE NOT NULL, data_pagamento DATE, status TEXT NOT NULL, created_at TIMESTAMP DEFAULT NOW() );
+CREATE TABLE stock ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), clinic_id UUID REFERENCES clinics(id) ON DELETE CASCADE, product_name TEXT NOT NULL, fabricante TEXT, lote TEXT, data_fabricacao DATE, data_validade DATE NOT NULL, quantidade INT NOT NULL, unidade TEXT NOT NULL, quantidade_minima INT NOT NULL, fornecedor TEXT, registro_anvisa TEXT NOT NULL, created_at TIMESTAMP DEFAULT NOW() );
+CREATE TABLE leads ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), clinic_id UUID REFERENCES clinics(id) ON DELETE CASCADE, name TEXT NOT NULL, telefone TEXT NOT NULL, email TEXT, procedimento_interesse TEXT, origem TEXT, status TEXT NOT NULL, observacoes TEXT, created_at TIMESTAMP DEFAULT NOW() );
+CREATE TABLE tcle ( id UUID PRIMARY KEY DEFAULT gen_random_uuid(), clinic_id UUID REFERENCES clinics(id) ON DELETE CASCADE, patient_id UUID REFERENCES patients(id) ON DELETE CASCADE, appointment_id UUID REFERENCES appointments(id), texto TEXT NOT NULL, assinado BOOLEAN DEFAULT FALSE, data_assinatura TIMESTAMP );
+            </textarea>
+            <button onclick="window.location.reload()" class="btn-primary w-full">Já executei o script. Recarregar.</button>
+        </div>
+    </div>
 
     <!-- ================= VIEW: LOGIN ================= -->
-    <section id="view-login" class="view-section active w-full h-full items-center justify-center relative">
+    <section id="view-login" class="view-section active w-full h-full flex items-center justify-center relative">
         <div class="absolute inset-0 bg-purple-900/5"></div>
         <div class="glass-card w-full max-w-md p-10 z-10 relative">
             <div class="text-center mb-8">
                 <div class="w-12 h-12 bg-purple-600 text-white rounded-xl mx-auto flex items-center justify-center mb-4"><i data-lucide="sparkles"></i></div>
                 <h1 class="text-2xl font-bold text-slate-900">STERING <span class="text-purple-600">ESTÉTICA</span></h1>
-                <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest">SaaS Cloud System (Offline)</p>
+                <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest">SaaS Cloud System</p>
             </div>
             <form id="form-login" class="space-y-4">
-                <div><label class="block text-xs font-semibold text-slate-600 mb-1">E-mail</label><input type="email" id="login-email" required class="input-base" value="quelvinrojostering16@gmail.com"></div>
-                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Senha</label><input type="password" id="login-pass" required class="input-base" value="IABADABADU@2025AUSTRIA"></div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">E-mail</label><input type="email" id="login-email" required class="input-base"></div>
+                <div><label class="block text-xs font-semibold text-slate-600 mb-1">Senha</label><input type="password" id="login-pass" required class="input-base"></div>
                 <button type="submit" class="btn-primary w-full py-3 mt-2">Acessar Plataforma</button>
             </form>
-            <div class="mt-4 text-center text-[10px] text-slate-400 font-medium">
-                Super Admin: quelvinrojostering16@gmail.com / IABADABADU@2025AUSTRIA<br>
-                Clínica Demo: admin@matriz.com / 123456
-            </div>
         </div>
     </section>
 
     <!-- ================= VIEW: SUPER ADMIN ================= -->
-    <section id="view-super-admin" class="view-section w-full h-full bg-[#f9fafb]">
+    <section id="view-super-admin" class="view-section w-full h-full flex">
         <aside class="w-64 bg-[#111827] text-slate-300 flex flex-col h-full shrink-0">
             <div class="p-6 border-b border-slate-800"><h2 class="text-white font-bold tracking-widest text-sm flex items-center gap-2"><i data-lucide="shield-check" class="text-purple-500"></i> SUPER ADMIN</h2></div>
             <nav class="flex-1 py-4 space-y-1"><a href="#" class="sidebar-item active flex items-center gap-3 px-6 py-3 text-sm font-medium"><i data-lucide="building-2" class="w-4 h-4"></i> Tenancies</a></nav>
             <div class="p-4 border-t border-slate-800"><button onclick="doLogout()" class="flex items-center gap-2 text-xs font-semibold text-red-400 hover:text-red-300 w-full"><i data-lucide="log-out" class="w-4 h-4"></i> Sair</button></div>
         </aside>
-        <main class="flex-1 overflow-y-auto p-8">
+        <main class="flex-1 overflow-y-auto p-8 bg-[#f9fafb]">
             <div class="flex justify-between items-center mb-8">
                 <h1 class="text-2xl font-bold text-slate-800">Visão Global do SaaS</h1>
                 <button onclick="openModal('modal-sa-clinic')" class="btn-primary flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Nova Clínica</button>
@@ -86,8 +103,791 @@
     <!-- Modal Super Admin: Nova Clínica -->
     <div id="modal-sa-clinic" class="modal-overlay fixed inset-0 bg-slate-900/50 z-50 items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-xl p-6 shadow-2xl">
-            <h3 class="font-bold text-lg mb-4 text-slate-800" id="sa-clinic-modal-title">Cadastrar Nova Clínica</h3>
+            <h3 class="font-bold text-lg mb-4 text-slate-800">Cadastrar Nova Clínica</h3>
             <form id="form-sa-clinic" class="space-y-4">
-                <input type="hidden" id="sa-c-id">
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="col-span-2">
+                    <div class="col-span-2"><label class="block text-xs font-semibold mb-1">Nome da Clínica</label><input type="text" id="sa-c-name" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Nome Responsável</label><input type="text" id="sa-c-owner" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">E-mail Admin</label><input type="email" id="sa-c-email" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Senha Temporária</label><input type="text" id="sa-c-pass" required class="input-base" value="mudar123"></div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Plano</label>
+                        <select id="sa-c-plan" class="input-base font-semibold">
+                            <option value="BASICO">Básico (Máx 2 users)</option>
+                            <option value="EQUIPE">Equipe (Máx 5 users)</option>
+                            <option value="EXPANSAO">Expansão (Máx 15 users)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-4"><button type="button" onclick="closeModal('modal-sa-clinic')" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-semibold text-sm">Cancelar</button><button type="submit" class="flex-1 btn-primary">Salvar Clínica</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= VIEW: CLÍNICA (MULTI-TENANT) ================= -->
+    <section id="view-clinic" class="view-section w-full h-full flex bg-[#f9fafb]">
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-[#111827] text-slate-300 flex flex-col h-full shrink-0">
+            <div class="p-6 border-b border-slate-800 text-center">
+                <div class="w-10 h-10 bg-purple-600 text-white rounded-lg mx-auto flex items-center justify-center mb-3"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
+                <h2 id="sid-clinic-name" class="text-white font-bold text-sm truncate uppercase tracking-widest">CLÍNICA</h2>
+                <span id="sid-clinic-plan" class="badge bg-slate-800 text-purple-400 mt-2 inline-block border border-slate-700">PLANO</span>
+            </div>
+            <nav class="flex-1 py-4 space-y-1 overflow-y-auto">
+                <button onclick="navClinic('dashboard')" class="sidebar-item active w-full flex items-center gap-3 px-6 py-3 text-sm font-medium hover:bg-slate-800"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</button>
+                <button onclick="navClinic('agenda')" class="sidebar-item w-full flex items-center gap-3 px-6 py-3 text-sm font-medium hover:bg-slate-800"><i data-lucide="calendar" class="w-4 h-4"></i> Agenda</button>
+                <button onclick="navClinic('pacientes')" class="sidebar-item w-full flex items-center gap-3 px-6 py-3 text-sm font-medium hover:bg-slate-800"><i data-lucide="users" class="w-4 h-4"></i> Pacientes</button>
+                <button onclick="navClinic('procedimentos')" class="sidebar-item w-full flex items-center gap-3 px-6 py-3 text-sm font-medium hover:bg-slate-800"><i data-lucide="activity" class="w-4 h-4"></i> Procedimentos</button>
+                <button onclick="navClinic('financeiro')" class="sidebar-item w-full flex items-center gap-3 px-6 py-3 text-sm font-medium hover:bg-slate-800"><i data-lucide="dollar-sign" class="w-4 h-4"></i> Financeiro</button>
+                <button onclick="navClinic('estoque')" class="sidebar-item w-full flex items-center gap-3 px-6 py-3 text-sm font-medium hover:bg-slate-800"><i data-lucide="package" class="w-4 h-4"></i> Estoque/ANVISA</button>
+                <button onclick="navClinic('crm')" class="sidebar-item w-full flex items-center gap-3 px-6 py-3 text-sm font-medium hover:bg-slate-800"><i data-lucide="target" class="w-4 h-4"></i> CRM (Funil)</button>
+                <button onclick="navClinic('usuarios')" class="sidebar-item w-full flex items-center gap-3 px-6 py-3 text-sm font-medium hover:bg-slate-800"><i data-lucide="shield" class="w-4 h-4"></i> Usuários</button>
+            </nav>
+            <div class="p-4 border-t border-slate-800">
+                <div class="flex items-center gap-3 mb-4"><img src="https://ui-avatars.com/api/?background=7c3aed&color=fff&name=U" class="w-8 h-8 rounded-full"><div class="overflow-hidden"><p id="sid-user-name" class="text-xs font-bold text-white truncate">User</p><p id="sid-user-role" class="text-[10px] text-slate-400">Role</p></div></div>
+                <button onclick="doLogout()" class="flex items-center justify-center gap-2 text-xs font-semibold text-red-400 hover:text-red-300 w-full py-2 bg-slate-800 rounded-lg"><i data-lucide="log-out" class="w-4 h-4"></i> Sair</button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <header class="h-16 bg-white border-b border-slate-100 px-8 flex items-center"><h1 id="header-title" class="text-xl font-bold text-slate-800">Dashboard</h1></header>
+            <div class="flex-1 overflow-y-auto p-8 relative">
+                
+                <!-- ABA: DASHBOARD -->
+                <div id="tab-dashboard" class="tab-content active space-y-6">
+                    <!-- Alertas -->
+                    <div id="dash-alerts" class="space-y-2"></div>
+                    <!-- KPIs -->
+                    <div class="grid grid-cols-4 gap-6">
+                        <div class="glass-card p-6"><p class="text-[10px] font-bold text-slate-500 uppercase">Faturamento (Mês)</p><h3 class="text-2xl font-bold text-green-600 mt-1" id="kpi-faturamento">R$ 0</h3></div>
+                        <div class="glass-card p-6"><p class="text-[10px] font-bold text-slate-500 uppercase">Ticket Médio</p><h3 class="text-2xl font-bold text-purple-600 mt-1" id="kpi-ticket">R$ 0</h3></div>
+                        <div class="glass-card p-6"><p class="text-[10px] font-bold text-slate-500 uppercase">Consultas Realizadas</p><h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-consultas">0</h3></div>
+                        <div class="glass-card p-6"><p class="text-[10px] font-bold text-slate-500 uppercase">Novos Pacientes</p><h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-pacientes">0</h3></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-6">
+                        <div class="col-span-2 glass-card p-6 h-80 flex flex-col"><h4 class="text-xs font-bold text-slate-600 uppercase mb-4">Receita Líquida (Últimos 6 meses)</h4><div class="flex-1 relative"><canvas id="dash-chart"></canvas></div></div>
+                        <div class="col-span-1 glass-card p-6 flex flex-col overflow-hidden"><h4 class="text-xs font-bold text-slate-600 uppercase mb-4">Agenda de Hoje</h4><div id="dash-agenda-today" class="flex-1 overflow-y-auto space-y-3"></div></div>
+                    </div>
+                </div>
+
+                <!-- ABA: AGENDA -->
+                <div id="tab-agenda" class="tab-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <input type="date" id="agenda-date-filter" onchange="renderAgenda()" class="input-base w-48 font-semibold">
+                        <button onclick="openModal('modal-agenda')" class="btn-primary flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Agendar Sessão</button>
+                    </div>
+                    <div class="glass-card overflow-hidden">
+                        <table class="w-full text-left border-collapse"><thead class="bg-slate-50 border-b border-slate-100 text-[10px] text-slate-500 uppercase"><tr><th class="p-4">Horário</th><th class="p-4">Paciente</th><th class="p-4">Procedimento</th><th class="p-4">Profissional</th><th class="p-4">Status</th><th class="p-4 text-right">Ações</th></tr></thead><tbody id="agenda-list" class="divide-y divide-slate-100 text-sm"></tbody></table>
+                    </div>
+                </div>
+
+                <!-- ABA: PACIENTES -->
+                <div id="tab-pacientes" class="tab-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <input type="text" id="patient-search" onkeyup="renderPatients()" placeholder="Buscar paciente por nome ou CPF..." class="input-base w-80">
+                        <button onclick="openModal('modal-patient')" class="btn-primary flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i> Cadastrar Paciente</button>
+                    </div>
+                    <div class="bg-blue-50 text-blue-800 p-3 rounded-lg text-xs font-medium mb-4 flex gap-2 items-center"><i data-lucide="info" class="w-4 h-4"></i> Coleta de dados obrigatória conforme RDC ANVISA 336/2020 e CFM 2.299/2021.</div>
+                    <div class="glass-card overflow-hidden">
+                        <table class="w-full text-left border-collapse"><thead class="bg-slate-50 border-b border-slate-100 text-[10px] text-slate-500 uppercase"><tr><th class="p-4">Nome</th><th class="p-4">CPF</th><th class="p-4">Contato</th><th class="p-4 text-right">Ações</th></tr></thead><tbody id="patient-list" class="divide-y divide-slate-100 text-sm"></tbody></table>
+                    </div>
+                </div>
+
+                <!-- ABA: PROCEDIMENTOS -->
+                <div id="tab-procedimentos" class="tab-content">
+                    <div class="flex justify-end mb-6"><button onclick="openModal('modal-proc')" class="btn-primary flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Novo Procedimento</button></div>
+                    <div class="glass-card overflow-hidden">
+                        <table class="w-full text-left border-collapse"><thead class="bg-slate-50 border-b border-slate-100 text-[10px] text-slate-500 uppercase"><tr><th class="p-4">Nome</th><th class="p-4">Categoria</th><th class="p-4">Valor (R$)</th><th class="p-4">Regras</th><th class="p-4 text-right">Ações</th></tr></thead><tbody id="proc-list" class="divide-y divide-slate-100 text-sm"></tbody></table>
+                    </div>
+                </div>
+
+                <!-- ABA: FINANCEIRO -->
+                <div id="tab-financeiro" class="tab-content">
+                    <div class="grid grid-cols-4 gap-6 mb-6">
+                        <div class="glass-card p-4 border-l-4 border-green-500"><p class="text-[10px] font-bold text-slate-500 uppercase">Receitas (Pagas)</p><h3 class="text-xl font-bold text-green-600" id="fin-receitas">R$ 0</h3></div>
+                        <div class="glass-card p-4 border-l-4 border-red-500"><p class="text-[10px] font-bold text-slate-500 uppercase">Despesas (Pagas)</p><h3 class="text-xl font-bold text-red-600" id="fin-despesas">R$ 0</h3></div>
+                        <div class="glass-card p-4 border-l-4 border-blue-500"><p class="text-[10px] font-bold text-slate-500 uppercase">Lucro Líquido</p><h3 class="text-xl font-bold text-blue-600" id="fin-lucro">R$ 0</h3></div>
+                        <div class="glass-card p-4 border-l-4 border-orange-500"><p class="text-[10px] font-bold text-slate-500 uppercase">A Receber</p><h3 class="text-xl font-bold text-orange-600" id="fin-receber">R$ 0</h3></div>
+                    </div>
+                    <div class="flex justify-between items-center mb-4"><h3 class="font-bold text-slate-700">Lançamentos</h3><button onclick="openModal('modal-fin')" class="btn-primary text-xs py-2">+ Lançamento Manual</button></div>
+                    <div class="glass-card overflow-hidden">
+                        <table class="w-full text-left border-collapse"><thead class="bg-slate-50 border-b border-slate-100 text-[10px] text-slate-500 uppercase"><tr><th class="p-4">Vencimento</th><th class="p-4">Descrição</th><th class="p-4">Tipo/Cat</th><th class="p-4">Valor</th><th class="p-4">Status</th><th class="p-4 text-right">Ações</th></tr></thead><tbody id="fin-list" class="divide-y divide-slate-100 text-sm"></tbody></table>
+                    </div>
+                </div>
+
+                <!-- ABA: ESTOQUE (ANVISA) -->
+                <div id="tab-estoque" class="tab-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="bg-orange-50 text-orange-800 p-3 rounded-lg text-xs font-medium flex gap-2 items-center"><i data-lucide="shield-alert" class="w-4 h-4"></i> O campo Registro ANVISA é obrigatório para controle sanitário.</div>
+                        <button onclick="openModal('modal-stock')" class="btn-primary flex items-center gap-2"><i data-lucide="package-plus" class="w-4 h-4"></i> Cadastrar Produto</button>
+                    </div>
+                    <div class="glass-card overflow-hidden">
+                        <table class="w-full text-left border-collapse"><thead class="bg-slate-50 border-b border-slate-100 text-[10px] text-slate-500 uppercase"><tr><th class="p-4">Produto</th><th class="p-4">Lote / Validade</th><th class="p-4">Reg. ANVISA</th><th class="p-4">Estoque</th><th class="p-4 text-right">Ações</th></tr></thead><tbody id="stock-list" class="divide-y divide-slate-100 text-sm"></tbody></table>
+                    </div>
+                </div>
+
+                <!-- ABA: CRM -->
+                <div id="tab-crm" class="tab-content h-full flex flex-col">
+                    <div class="flex justify-between items-center mb-6"><p class="text-sm font-semibold text-slate-600">Funil de Captação</p><button onclick="openModal('modal-lead')" class="btn-primary text-xs py-2">+ Novo Lead</button></div>
+                    <div class="flex gap-4 overflow-x-auto pb-4 flex-1">
+                        <div class="min-w-[280px] bg-slate-100 rounded-xl p-3 kanban-col"><h4 class="text-xs font-bold text-slate-500 uppercase mb-3 flex justify-between">Novo <span></span></h4><div id="crm-novo" class="space-y-2"></div></div>
+                        <div class="min-w-[280px] bg-slate-100 rounded-xl p-3 kanban-col"><h4 class="text-xs font-bold text-slate-500 uppercase mb-3 flex justify-between">Contato Feito <span></span></h4><div id="crm-contato" class="space-y-2"></div></div>
+                        <div class="min-w-[280px] bg-blue-50 rounded-xl p-3 kanban-col border border-blue-100"><h4 class="text-xs font-bold text-blue-600 uppercase mb-3 flex justify-between">Avaliação Agend. <span></span></h4><div id="crm-avaliacao" class="space-y-2"></div></div>
+                        <div class="min-w-[280px] bg-orange-50 rounded-xl p-3 kanban-col border border-orange-100"><h4 class="text-xs font-bold text-orange-600 uppercase mb-3 flex justify-between">Proposta Env. <span></span></h4><div id="crm-proposta" class="space-y-2"></div></div>
+                        <div class="min-w-[280px] bg-green-50 rounded-xl p-3 kanban-col border border-green-100"><h4 class="text-xs font-bold text-green-600 uppercase mb-3 flex justify-between">Convertido <span></span></h4><div id="crm-convertido" class="space-y-2"></div></div>
+                        <div class="min-w-[280px] bg-red-50 rounded-xl p-3 kanban-col border border-red-100"><h4 class="text-xs font-bold text-red-600 uppercase mb-3 flex justify-between">Perdido <span></span></h4><div id="crm-perdido" class="space-y-2"></div></div>
+                    </div>
+                </div>
+
+                <!-- ABA: USUÁRIOS -->
+                <div id="tab-usuarios" class="tab-content">
+                    <div class="flex justify-between items-center mb-6">
+                        <div><h3 class="font-bold text-slate-800">Equipe da Clínica</h3><p class="text-xs text-slate-500" id="user-plan-info">Plano atual: 0/0 usuários</p></div>
+                        <button onclick="openUserModal()" class="btn-primary flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i> Novo Usuário</button>
+                    </div>
+                    <div class="glass-card overflow-hidden">
+                        <table class="w-full text-left border-collapse"><thead class="bg-slate-50 border-b border-slate-100 text-[10px] text-slate-500 uppercase"><tr><th class="p-4">Nome</th><th class="p-4">E-mail</th><th class="p-4">Perfil</th><th class="p-4">Status</th><th class="p-4 text-right">Ações</th></tr></thead><tbody id="users-list" class="divide-y divide-slate-100 text-sm"></tbody></table>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </section>
+
+    <!-- Modais Clínica -->
+    <!-- Modal Paciente -->
+    <div id="modal-patient" class="modal-overlay fixed inset-0 bg-slate-900/50 z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-xl p-6 shadow-2xl max-h-[90vh] flex flex-col">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">Ficha Clínica do Paciente</h3>
+            <div class="overflow-y-auto flex-1 pr-2">
+                <form id="form-patient" class="space-y-4">
+                    <input type="hidden" id="pt-id">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2"><label class="block text-xs font-semibold mb-1">Nome Completo *</label><input type="text" id="pt-name" required class="input-base"></div>
+                        <div><label class="block text-xs font-semibold mb-1">CPF *</label><input type="text" id="pt-cpf" required class="input-base" pattern="\\d{11}" title="Apenas números, 11 dígitos" placeholder="Apenas números"></div>
+                        <div><label class="block text-xs font-semibold mb-1">Data Nascimento *</label><input type="date" id="pt-dob" required class="input-base" onchange="checkPatientAge()"></div>
+                        <div><label class="block text-xs font-semibold mb-1">Telefone / WhatsApp *</label><input type="text" id="pt-phone" required class="input-base"></div>
+                        <div><label class="block text-xs font-semibold mb-1">E-mail</label><input type="email" id="pt-email" class="input-base"></div>
+                    </div>
+                    <!-- Responsável Legal (Menor 18) -->
+                    <div id="pt-resp-group" class="hidden bg-orange-50 p-4 rounded-lg border border-orange-200 grid grid-cols-2 gap-4">
+                        <div class="col-span-2 text-xs font-bold text-orange-700"><i data-lucide="alert-circle" class="w-4 h-4 inline"></i> Paciente Menor de Idade. Dados do Responsável Legal Obrigatórios.</div>
+                        <div><label class="block text-xs font-semibold mb-1 text-orange-900">Nome Responsável *</label><input type="text" id="pt-resp-name" class="input-base border-orange-300"></div>
+                        <div><label class="block text-xs font-semibold mb-1 text-orange-900">CPF Responsável *</label><input type="text" id="pt-resp-cpf" class="input-base border-orange-300"></div>
+                    </div>
+                    <div class="border-t pt-4">
+                        <h4 class="font-bold text-sm mb-3">Anamnese Express</h4>
+                        <div class="grid grid-cols-3 gap-3 text-xs">
+                            <label class="flex items-center gap-2"><input type="checkbox" id="an-hiper"> Hipertensão</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" id="an-diab"> Diabetes</label>
+                            <label class="flex items-center gap-2"><input type="checkbox" id="an-gest"> Gestante/Lactante</label>
+                        </div>
+                        <div class="mt-3"><label class="block text-xs font-semibold mb-1">Alergias</label><input type="text" id="pt-alergias" class="input-base" placeholder="Se sim, descreva"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="flex gap-2 pt-4 border-t mt-4"><button type="button" onclick="closeModal('modal-patient')" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-semibold text-sm">Cancelar</button><button onclick="document.getElementById('form-patient').requestSubmit()" class="flex-1 btn-primary">Salvar Prontuário</button></div>
+        </div>
+    </div>
+
+    <!-- Modal Procedimento -->
+    <div id="modal-proc" class="modal-overlay fixed inset-0 bg-slate-900/50 z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-xl p-6 shadow-2xl">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">Procedimento</h3>
+            <form id="form-proc" class="space-y-4">
+                <input type="hidden" id="pr-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2"><label class="block text-xs font-semibold mb-1">Nome do Procedimento</label><input type="text" id="pr-name" required class="input-base"></div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Categoria</label>
+                        <select id="pr-cat" class="input-base"><option value="Facial">Facial</option><option value="Corporal">Corporal</option><option value="Capilar">Capilar</option><option value="Injetáveis">Injetáveis</option><option value="Outros">Outros</option></select>
+                    </div>
+                    <div><label class="block text-xs font-semibold mb-1">Valor Padrão (R$)</label><input type="number" step="0.01" id="pr-valor" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Duração (Minutos)</label><input type="number" id="pr-duracao" required class="input-base"></div>
+                </div>
+                <div class="flex gap-4 p-3 bg-slate-50 rounded-lg text-sm font-medium">
+                    <label class="flex items-center gap-2"><input type="checkbox" id="pr-req-an"> Exige Anamnese</label>
+                    <label class="flex items-center gap-2"><input type="checkbox" id="pr-req-tc"> Exige TCLE Digital</label>
+                </div>
+                <div class="flex gap-2 pt-4"><button type="button" onclick="closeModal('modal-proc')" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-semibold">Cancelar</button><button type="submit" class="flex-1 btn-primary">Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Agenda -->
+    <div id="modal-agenda" class="modal-overlay fixed inset-0 bg-slate-900/50 z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-xl p-6 shadow-2xl">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">Agendamento</h3>
+            <form id="form-agenda" class="space-y-4">
+                <input type="hidden" id="ag-id">
+                <div><label class="block text-xs font-semibold mb-1">Paciente</label><select id="ag-patient" required class="input-base"></select></div>
+                <div><label class="block text-xs font-semibold mb-1">Procedimento</label><select id="ag-proc" required class="input-base" onchange="updateAgendaValue()"></select></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-semibold mb-1">Data</label><input type="date" id="ag-date" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Hora</label><input type="time" id="ag-time" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Status</label><select id="ag-status" class="input-base"><option value="Agendado">Agendado</option><option value="Confirmado">Confirmado</option><option value="Realizado">Realizado</option><option value="Cancelado">Cancelado</option></select></div>
+                    <div><label class="block text-xs font-semibold mb-1">Valor Cobrado (R$)</label><input type="number" step="0.01" id="ag-valor" required class="input-base text-purple-600 font-bold"></div>
+                </div>
+                <div class="flex gap-2 pt-4"><button type="button" onclick="closeModal('modal-agenda')" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-semibold">Cancelar</button><button type="submit" class="flex-1 btn-primary">Salvar (Gera Financeiro)</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Financeiro -->
+    <div id="modal-fin" class="modal-overlay fixed inset-0 bg-slate-900/50 z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-xl p-6 shadow-2xl">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">Lançamento Financeiro</h3>
+            <form id="form-fin" class="space-y-4">
+                <input type="hidden" id="fn-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2"><label class="block text-xs font-semibold mb-1">Descrição</label><input type="text" id="fn-desc" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Tipo</label><select id="fn-type" class="input-base"><option value="Receita">Receita</option><option value="Despesa">Despesa</option></select></div>
+                    <div><label class="block text-xs font-semibold mb-1">Valor (R$)</label><input type="number" step="0.01" id="fn-valor" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Vencimento</label><input type="date" id="fn-venc" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Status</label><select id="fn-status" class="input-base"><option value="Pendente">Pendente</option><option value="Pago">Pago</option></select></div>
+                </div>
+                <div class="flex gap-2 pt-4"><button type="button" onclick="closeModal('modal-fin')" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-semibold">Cancelar</button><button type="submit" class="flex-1 btn-primary">Salvar Lançamento</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Estoque -->
+    <div id="modal-stock" class="modal-overlay fixed inset-0 bg-slate-900/50 z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-xl p-6 shadow-2xl">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">Produto / Estoque</h3>
+            <form id="form-stock" class="space-y-4">
+                <input type="hidden" id="st-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2"><label class="block text-xs font-semibold mb-1">Nome do Produto</label><input type="text" id="st-name" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1 text-orange-600">Registro ANVISA *</label><input type="text" id="st-anvisa" required class="input-base border-orange-200" placeholder="Ex: 25351.xxx/xxx"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Lote</label><input type="text" id="st-lote" class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Qtd Atual</label><input type="number" id="st-qtd" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Qtd Mínima (Alerta)</label><input type="number" id="st-min" required class="input-base"></div>
+                    <div><label class="block text-xs font-semibold mb-1">Unidade</label><select id="st-unid" class="input-base"><option>Unidades</option><option>Seringas</option><option>Ampolas</option><option>Caixas</option></select></div>
+                    <div><label class="block text-xs font-semibold mb-1">Data Validade *</label><input type="date" id="st-val" required class="input-base"></div>
+                </div>
+                <div class="flex gap-2 pt-4"><button type="button" onclick="closeModal('modal-stock')" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-semibold">Cancelar</button><button type="submit" class="flex-1 btn-primary">Salvar Produto</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Lead -->
+    <div id="modal-lead" class="modal-overlay fixed inset-0 bg-slate-900/50 z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-xl p-6 shadow-2xl">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">Oportunidade (Lead)</h3>
+            <form id="form-lead" class="space-y-4">
+                <input type="hidden" id="ld-id">
+                <input type="hidden" id="ld-status" value="Novo Lead">
+                <div><label class="block text-xs font-semibold mb-1">Nome</label><input type="text" id="ld-name" required class="input-base"></div>
+                <div><label class="block text-xs font-semibold mb-1">WhatsApp</label><input type="text" id="ld-phone" required class="input-base"></div>
+                <div><label class="block text-xs font-semibold mb-1">Interesse</label><input type="text" id="ld-int" class="input-base"></div>
+                <div><label class="block text-xs font-semibold mb-1">Origem</label><select id="ld-origem" class="input-base"><option>Instagram</option><option>Indicação</option><option>WhatsApp</option><option>Google</option></select></div>
+                <div class="flex gap-2 pt-4"><button type="button" onclick="closeModal('modal-lead')" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-semibold">Cancelar</button><button type="submit" class="flex-1 btn-primary">Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Usuario -->
+    <div id="modal-user" class="modal-overlay fixed inset-0 bg-slate-900/50 z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-xl p-6 shadow-2xl">
+            <h3 class="font-bold text-lg mb-4 text-slate-800">Usuário da Clínica</h3>
+            <form id="form-user" class="space-y-4">
+                <input type="hidden" id="u-id">
+                <div><label class="block text-xs font-semibold mb-1">Nome</label><input type="text" id="u-name" required class="input-base"></div>
+                <div><label class="block text-xs font-semibold mb-1">E-mail (Login)</label><input type="email" id="u-email" required class="input-base"></div>
+                <div><label class="block text-xs font-semibold mb-1">Senha</label><input type="text" id="u-pass" required class="input-base" placeholder="Deixe vazio para não alterar"></div>
+                <div><label class="block text-xs font-semibold mb-1">Nível de Acesso</label><select id="u-role" class="input-base"><option value="admin">Administrador Total</option><option value="colaborador">Colaborador (S/ Fin.)</option></select></div>
+                <div class="flex gap-2 pt-4"><button type="button" onclick="closeModal('modal-user')" class="flex-1 py-2 bg-slate-100 text-slate-600 rounded-lg font-semibold">Cancelar</button><button type="submit" class="flex-1 btn-primary">Salvar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TCLE Modal -->
+    <div id="modal-tcle" class="modal-overlay fixed inset-0 bg-slate-900/80 z-[100] items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-xl p-8 shadow-2xl flex flex-col max-h-[90vh]">
+            <h3 class="font-bold text-lg text-slate-800 border-b pb-4">Termo de Consentimento Livre e Esclarecido (TCLE)</h3>
+            <div class="flex-1 overflow-y-auto py-4 text-sm text-slate-600 text-justify space-y-4" id="tcle-content"></div>
+            <div class="border-t pt-4">
+                <label class="flex items-center gap-2 font-bold text-slate-800 text-xs bg-purple-50 p-4 rounded-lg cursor-pointer border border-purple-200"><input type="checkbox" id="tcle-check" class="w-4 h-4 text-purple-600 rounded"> Declaro ter lido e compreendido os riscos, consentindo com a realização do procedimento descrito através da minha assinatura digital.</label>
+                <div class="flex gap-2 mt-4"><button onclick="closeModal('modal-tcle')" class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-lg font-bold">Recusar</button><button onclick="signTcle()" class="flex-1 btn-primary py-3">Assinar Eletronicamente</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // INIT SUPABASE
+        const supabaseUrl = 'https://eqenawsrkdqexqqredlg.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxZW5hd3Nya2RxZXhxcXJlZGxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Njc1NzcsImV4cCI6MjA5MDA0MzU3N30.yKoIT_kxFcwKlG_srdrPeJ29Ww5DiVxT_JywAmlOCjQ';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // STATE
+        let session = { role: null, user: null, clinic: null }; // role: 'SUPER' or 'CLINIC'
+        let appData = { patients:[], procedures:[], appointments:[], financial:[], stock:[], leads:[], users:[] };
+        let activeTcleApptId = null;
+        let dashChartObj = null;
+
+        // UI UTILS
+        const showLoader = () => document.getElementById('global-loader').style.display = 'flex';
+        const hideLoader = () => document.getElementById('global-loader').style.display = 'none';
+        const openModal = (id) => document.getElementById(id).classList.add('active');
+        const closeModal = (id) => document.getElementById(id).classList.remove('active');
+        const switchView = (id) => { document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); lucide.createIcons(); }
+
+        // SHA-256 Hash
+        async function hashString(str) {
+            const buffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+            return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // INIT CHECK
+        window.onload = async () => {
+            lucide.createIcons();
+            // Test DB Connection
+            showLoader();
+            const { error } = await supabase.from('clinics').select('id').limit(1);
+            hideLoader();
+            if (error && error.code === '42P01') { document.getElementById('modal-sql').classList.add('active'); return; }
+            
+            const savedSession = sessionStorage.getItem('stering_session');
+            if(savedSession) {
+                session = JSON.parse(savedSession);
+                if(session.role === 'SUPER') initSuperAdmin();
+                else initClinic();
+            }
+        };
+
+        // LOGIN LOGIC
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+
+            if(email === 'quelvinrojostering16@gmail.com' && pass === 'IABADABADU@2025AUSTRIA') {
+                session = { role: 'SUPER', user: { name: 'Super Admin' } };
+                sessionStorage.setItem('stering_session', JSON.stringify(session));
+                initSuperAdmin();
+            } else {
+                showLoader();
+                const hash = await hashString(pass);
+                const { data, error } = await supabase.from('users_clinic').select('*, clinics(*)').eq('email', email).eq('password_hash', hash).eq('active', true).single();
+                hideLoader();
+                if(error || !data) return alert('Credenciais inválidas ou usuário inativo.');
+                if(data.clinics.status !== 'ativo') return alert('A clínica associada a esta conta não está ativa.');
+                
+                session = { role: 'CLINIC', user: data, clinic: data.clinics };
+                sessionStorage.setItem('stering_session', JSON.stringify(session));
+                initClinic();
+            }
+        });
+
+        function doLogout() { sessionStorage.removeItem('stering_session'); location.reload(); }
+
+        // ================= SUPER ADMIN =================
+        async function initSuperAdmin() {
+            switchView('view-super-admin');
+            showLoader();
+            const { data: clinics } = await supabase.from('clinics').select('*, users_clinic(count)');
+            hideLoader();
+            
+            let mrr = 0; let active = 0;
+            const tbody = document.getElementById('sa-clinics-list'); tbody.innerHTML = '';
+            
+            clinics.forEach(c => {
+                let pCost = c.plan==='BASICO'?50 : (c.plan==='EQUIPE'?100 : 150);
+                if(c.status === 'ativo') { mrr += pCost; active++; }
+                
+                const cColor = c.status === 'ativo' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700';
+                tbody.innerHTML += `<tr><td class="px-6 py-4 font-bold">${c.name}</td><td class="px-6 py-4">${c.owner_name}</td><td class="px-6 py-4 font-semibold text-purple-600 uppercase text-xs">${c.plan}</td><td class="px-6 py-4"><span class="badge ${cColor}">${c.status}</span></td><td class="px-6 py-4 text-right"><button onclick="loginAsAdminClinic('${c.id}')" class="text-xs font-bold text-blue-600 hover:underline">Entrar na Unidade</button></td></tr>`;
+            });
+            
+            document.getElementById('sa-kpi-total').innerText = clinics.length;
+            document.getElementById('sa-kpi-mrr').innerText = `R$ ${mrr}`;
+            document.getElementById('sa-kpi-ativas').innerText = active;
+        }
+
+        document.getElementById('form-sa-clinic').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('sa-c-name').value;
+            const owner = document.getElementById('sa-c-owner').value;
+            const email = document.getElementById('sa-c-email').value;
+            const pass = document.getElementById('sa-c-pass').value;
+            const plan = document.getElementById('sa-c-plan').value;
+
+            showLoader();
+            // 1. Inserir Clínica
+            const { data: cData, error: cErr } = await supabase.from('clinics').insert([{ name, owner_name: owner, plan, status: 'ativo' }]).select().single();
+            if(cErr) { hideLoader(); return alert('Erro ao criar clínica: ' + cErr.message); }
+
+            // 2. Inserir User Admin
+            const hash = await hashString(pass);
+            const { error: uErr } = await supabase.from('users_clinic').insert([{ clinic_id: cData.id, name: owner, email, password_hash: hash, role: 'admin' }]);
+            hideLoader();
+            
+            if(uErr) alert('Clínica criada, mas erro no usuário: ' + uErr.message);
+            else { alert('Clínica e administrador criados com sucesso!'); closeModal('modal-sa-clinic'); initSuperAdmin(); }
+        });
+
+        async function loginAsAdminClinic(clinicId) {
+            showLoader();
+            const { data } = await supabase.from('users_clinic').select('*, clinics(*)').eq('clinic_id', clinicId).eq('role', 'admin').limit(1).single();
+            hideLoader();
+            if(!data) return alert('Nenhum admin encontrado nesta clínica.');
+            session = { role: 'CLINIC', user: data, clinic: data.clinics };
+            sessionStorage.setItem('stering_session', JSON.stringify(session));
+            initClinic();
+        }
+
+        // ================= CLINIC (MULTI-TENANT) =================
+        async function initClinic() {
+            document.getElementById('sid-clinic-name').innerText = session.clinic.name;
+            document.getElementById('sid-clinic-plan').innerText = session.clinic.plan;
+            document.getElementById('sid-user-name').innerText = session.user.name;
+            document.getElementById('sid-user-role').innerText = session.user.role.toUpperCase();
+            document.getElementById('agenda-date-filter').value = new Date().toISOString().split('T')[0];
+            
+            switchView('view-clinic');
+            await loadAllClinicData();
+            navClinic('dashboard');
+        }
+
+        async function loadAllClinicData() {
+            showLoader();
+            const cid = session.clinic.id;
+            const [p, pr, a, f, s, l, u] = await Promise.all([
+                supabase.from('patients').select('*').eq('clinic_id', cid),
+                supabase.from('procedures').select('*').eq('clinic_id', cid),
+                supabase.from('appointments').select('*').eq('clinic_id', cid),
+                supabase.from('financial').select('*').eq('clinic_id', cid),
+                supabase.from('stock').select('*').eq('clinic_id', cid),
+                supabase.from('leads').select('*').eq('clinic_id', cid),
+                supabase.from('users_clinic').select('id, name, email, role, active').eq('clinic_id', cid)
+            ]);
+            hideLoader();
+            appData = { patients: p.data||[], procedures: pr.data||[], appointments: a.data||[], financial: f.data||[], stock: s.data||[], leads: l.data||[], users: u.data||[] };
+        }
+
+        function navClinic(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('header-title').innerText = tab.toUpperCase();
+
+            if(tab === 'dashboard') drawDashboard();
+            if(tab === 'agenda') renderAgenda();
+            if(tab === 'pacientes') renderPatients();
+            if(tab === 'procedimentos') renderProcs();
+            if(tab === 'financeiro') renderFinance();
+            if(tab === 'estoque') renderStock();
+            if(tab === 'crm') renderKanban();
+            if(tab === 'usuarios') renderUsers();
+        }
+
+        // --- DASHBOARD ---
+        function drawDashboard() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const currentMonth = new Date().getMonth();
+            
+            let faturamento = 0; let nConsultas = 0; let alertsHtml = '';
+            
+            appData.financial.forEach(f => {
+                if(f.type === 'Receita' && f.status === 'Pago' && new Date(f.data_pagamento||f.data_vencimento).getMonth() === currentMonth) faturamento += Number(f.valor);
+            });
+            appData.appointments.forEach(a => { if(a.status === 'Realizado' && new Date(a.data_hora).getMonth() === currentMonth) nConsultas++; });
+
+            document.getElementById('kpi-faturamento').innerText = `R$ ${faturamento.toFixed(2)}`;
+            document.getElementById('kpi-consultas').innerText = nConsultas;
+            document.getElementById('kpi-ticket').innerText = nConsultas > 0 ? `R$ ${(faturamento/nConsultas).toFixed(2)}` : 'R$ 0';
+            document.getElementById('kpi-pacientes').innerText = appData.patients.length;
+
+            // Alertas
+            const lowStock = appData.stock.filter(s => s.quantidade <= s.quantidade_minima);
+            if(lowStock.length > 0) alertsHtml += `<div class="bg-red-50 text-red-700 p-3 rounded-lg text-xs font-bold flex items-center gap-2"><i data-lucide="alert-triangle" class="w-4 h-4"></i> ${lowStock.length} produtos com estoque crítico!</div>`;
+            const unconfApps = appData.appointments.filter(a => a.status === 'Agendado' && a.data_hora.startsWith(todayStr));
+            if(unconfApps.length > 0) alertsHtml += `<div class="bg-orange-50 text-orange-700 p-3 rounded-lg text-xs font-bold flex items-center gap-2"><i data-lucide="calendar-clock" class="w-4 h-4"></i> ${unconfApps.length} agendamentos para hoje sem confirmação!</div>`;
+            document.getElementById('dash-alerts').innerHTML = alertsHtml;
+
+            // Agenda Today
+            const agHtml = appData.appointments.filter(a => a.data_hora.startsWith(todayStr)).sort().map(a => {
+                const pt = appData.patients.find(p=>p.id===a.patient_id);
+                return `<div class="p-3 border rounded-lg flex justify-between items-center text-xs"><span class="font-bold">${a.data_hora.split('T')[1].substring(0,5)} - ${pt?pt.name:''}</span> <span class="badge bg-slate-100 text-slate-600">${a.status}</span></div>`;
+            }).join('');
+            document.getElementById('dash-agenda-today').innerHTML = agHtml || '<p class="text-xs text-slate-400">Nenhuma consulta hoje.</p>';
+
+            // Chart
+            if(dashChartObj) dashChartObj.destroy();
+            dashChartObj = new Chart(document.getElementById('dash-chart').getContext('2d'), {
+                type: 'bar', data: { labels: ['M1','M2','M3','M4','M5','M6'], datasets:[{label:'Receita', data:[0,0,0,0,0,faturamento], backgroundColor:'#7c3aed', borderRadius:4}] }, options: { maintainAspectRatio: false, plugins: {legend:{display:false}} }
+            });
+            lucide.createIcons();
+        }
+
+        // --- AGENDA ---
+        function renderAgenda() {
+            const filterDate = document.getElementById('agenda-date-filter').value;
+            const tb = document.getElementById('agenda-list'); tb.innerHTML = '';
+            
+            const list = appData.appointments.filter(a => a.data_hora.startsWith(filterDate)).sort((a,b)=>a.data_hora.localeCompare(b.data_hora));
+            list.forEach(a => {
+                const pt = appData.patients.find(p=>p.id===a.patient_id);
+                const pr = appData.procedures.find(p=>p.id===a.procedure_id);
+                const color = a.status==='Confirmado'?'bg-blue-100 text-blue-700':(a.status==='Realizado'?'bg-green-100 text-green-700':(a.status==='Cancelado'?'bg-red-100 text-red-700':'bg-slate-100 text-slate-700'));
+                
+                let tcleBtn = '';
+                if(pr && pr.requer_tcle && a.status !== 'Cancelado') tcleBtn = `<button onclick="openTcle('${a.id}', '${pt.name}', '${pr.name}')" class="text-purple-600 font-bold ml-2">TCLE</button>`;
+
+                tb.innerHTML += `<tr class="hover:bg-slate-50 border-b border-slate-50"><td class="p-4 font-bold text-slate-800">${a.data_hora.split('T')[1].substring(0,5)}</td><td class="p-4">${pt?pt.name:'-'}</td><td class="p-4">${pr?pr.name:'-'}</td><td class="p-4">Profissional</td><td class="p-4"><span class="badge ${color}">${a.status}</span></td><td class="p-4 text-right space-x-2"><button onclick="editAgenda('${a.id}')" class="text-blue-500 font-bold">Editar</button>${tcleBtn}</td></tr>`;
+            });
+        }
+
+        function updateAgendaValue() {
+            const prId = document.getElementById('ag-proc').value;
+            const pr = appData.procedures.find(p=>p.id===prId);
+            if(pr) document.getElementById('ag-valor').value = pr.valor;
+        }
+
+        function openModalAgenda(isEdit=false) {
+            document.getElementById('ag-patient').innerHTML = '<option value="">Selecione...</option>' + appData.patients.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+            document.getElementById('ag-proc').innerHTML = '<option value="">Selecione...</option>' + appData.procedures.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+            if(!isEdit) { document.getElementById('form-agenda').reset(); document.getElementById('ag-id').value=''; }
+            openModal('modal-agenda');
+        }
+
+        function editAgenda(id) {
+            openModalAgenda(true);
+            const a = appData.appointments.find(x=>x.id===id);
+            document.getElementById('ag-id').value = a.id;
+            document.getElementById('ag-patient').value = a.patient_id;
+            document.getElementById('ag-proc').value = a.procedure_id;
+            document.getElementById('ag-date').value = a.data_hora.split('T')[0];
+            document.getElementById('ag-time').value = a.data_hora.split('T')[1].substring(0,5);
+            document.getElementById('ag-status').value = a.status;
+            document.getElementById('ag-valor').value = a.valor_cobrado;
+        }
+
+        document.getElementById('form-agenda').addEventListener('submit', async (e) => {
+            e.preventDefault(); showLoader();
+            const id = document.getElementById('ag-id').value;
+            const data_hora = document.getElementById('ag-date').value + 'T' + document.getElementById('ag-time').value + ':00';
+            const payload = {
+                clinic_id: session.clinic.id, user_id: session.user.id,
+                patient_id: document.getElementById('ag-patient').value, procedure_id: document.getElementById('ag-proc').value,
+                data_hora, status: document.getElementById('ag-status').value, valor_cobrado: document.getElementById('ag-valor').value
+            };
+
+            if(id) {
+                await supabase.from('appointments').update(payload).eq('id', id);
+                // Integração Financeira via Status Update
+                const fin = appData.financial.find(f => f.appointment_id === id);
+                if(fin) {
+                    if(payload.status === 'Realizado' && fin.status !== 'Pago') await supabase.from('financial').update({status:'Pago', data_pagamento: new Date().toISOString().split('T')[0]}).eq('id', fin.id);
+                    if(payload.status === 'Cancelado') await supabase.from('financial').update({status:'Cancelado'}).eq('id', fin.id);
+                }
+            } else {
+                const { data } = await supabase.from('appointments').insert([payload]).select().single();
+                // Integração Financeira Create
+                if(data && payload.valor_cobrado > 0) {
+                    await supabase.from('financial').insert([{ clinic_id: session.clinic.id, appointment_id: data.id, type: 'Receita', categoria: 'Procedimento', descricao: 'Ref. Agendamento', valor: payload.valor_cobrado, data_vencimento: document.getElementById('ag-date').value, status: payload.status === 'Realizado' ? 'Pago' : 'Pendente' }]);
+                }
+            }
+            await loadAllClinicData(); closeModal('modal-agenda'); renderAgenda();
+        });
+
+        // --- PACIENTES ---
+        function checkPatientAge() {
+            const dob = document.getElementById('pt-dob').value;
+            if(!dob) return;
+            const age = Math.floor((new Date() - new Date(dob)) / 31557600000);
+            const group = document.getElementById('pt-resp-group');
+            if(age < 18) { group.classList.remove('hidden'); document.getElementById('pt-resp-name').required = true; document.getElementById('pt-resp-cpf').required = true; } 
+            else { group.classList.add('hidden'); document.getElementById('pt-resp-name').required = false; document.getElementById('pt-resp-cpf').required = false; }
+        }
+
+        function renderPatients() {
+            const search = document.getElementById('patient-search').value.toLowerCase();
+            const tb = document.getElementById('patient-list'); tb.innerHTML = '';
+            appData.patients.filter(p => p.name.toLowerCase().includes(search) || p.cpf.includes(search)).forEach(p => {
+                tb.innerHTML += `<tr class="hover:bg-slate-50 border-b border-slate-50"><td class="p-4 font-bold text-slate-800">${p.name}</td><td class="p-4 font-mono text-slate-500">${p.cpf}</td><td class="p-4">${p.telefone}</td><td class="p-4 text-right"><button onclick="editPatient('${p.id}')" class="text-blue-600 font-bold">Abrir Ficha</button></td></tr>`;
+            });
+        }
+
+        function openModalPatient(isEdit=false) {
+            if(!isEdit) { document.getElementById('form-patient').reset(); document.getElementById('pt-id').value=''; checkPatientAge(); }
+            openModal('modal-patient');
+        }
+
+        function editPatient(id) {
+            openModalPatient(true);
+            const p = appData.patients.find(x=>x.id===id);
+            document.getElementById('pt-id').value = p.id; document.getElementById('pt-name').value = p.name; document.getElementById('pt-cpf').value = p.cpf; document.getElementById('pt-dob').value = p.data_nascimento; document.getElementById('pt-phone').value = p.telefone; document.getElementById('pt-email').value = p.email; document.getElementById('pt-resp-name').value = p.responsavel_legal||''; document.getElementById('pt-resp-cpf').value = p.responsavel_cpf||'';
+            const anam = p.anamnese || {};
+            document.getElementById('an-hiper').checked = anam.hiper; document.getElementById('an-diab').checked = anam.diab; document.getElementById('an-gest').checked = anam.gest; document.getElementById('pt-alergias').value = p.alergias||'';
+            checkPatientAge();
+        }
+
+        document.getElementById('form-patient').addEventListener('submit', async (e) => {
+            e.preventDefault(); showLoader();
+            const id = document.getElementById('pt-id').value;
+            const payload = {
+                clinic_id: session.clinic.id, name: document.getElementById('pt-name').value, cpf: document.getElementById('pt-cpf').value, data_nascimento: document.getElementById('pt-dob').value, telefone: document.getElementById('pt-phone').value, email: document.getElementById('pt-email').value, responsavel_legal: document.getElementById('pt-resp-name').value, responsavel_cpf: document.getElementById('pt-resp-cpf').value, alergias: document.getElementById('pt-alergias').value,
+                anamnese: { hiper: document.getElementById('an-hiper').checked, diab: document.getElementById('an-diab').checked, gest: document.getElementById('an-gest').checked }
+            };
+            if(id) await supabase.from('patients').update(payload).eq('id', id); else await supabase.from('patients').insert([payload]);
+            await loadAllClinicData(); closeModal('modal-patient'); renderPatients();
+        });
+
+        // --- PROCEDIMENTOS ---
+        function renderProcs() {
+            const tb = document.getElementById('proc-list'); tb.innerHTML = '';
+            appData.procedures.forEach(p => {
+                const reqs =[]; if(p.requer_anamnese) reqs.push('Anamnese'); if(p.requer_tcle) reqs.push('TCLE');
+                tb.innerHTML += `<tr class="hover:bg-slate-50 border-b border-slate-50"><td class="p-4 font-bold text-slate-800">${p.name}</td><td class="p-4">${p.categoria}</td><td class="p-4 font-semibold text-green-600">R$ ${p.valor}</td><td class="p-4 text-xs">${reqs.join(', ') || '-'}</td><td class="p-4 text-right"><button onclick="editProc('${p.id}')" class="text-blue-600 font-bold">Editar</button></td></tr>`;
+            });
+        }
+        function editProc(id) {
+            const p = appData.procedures.find(x=>x.id===id); document.getElementById('form-proc').reset();
+            document.getElementById('pr-id').value=p.id; document.getElementById('pr-name').value=p.name; document.getElementById('pr-cat').value=p.categoria; document.getElementById('pr-valor').value=p.valor; document.getElementById('pr-duracao').value=p.duracao_min; document.getElementById('pr-req-an').checked=p.requer_anamnese; document.getElementById('pr-req-tc').checked=p.requer_tcle;
+            openModal('modal-proc');
+        }
+        document.getElementById('form-proc').addEventListener('submit', async (e) => {
+            e.preventDefault(); showLoader();
+            const id = document.getElementById('pr-id').value;
+            const payload = { clinic_id: session.clinic.id, name: document.getElementById('pr-name').value, categoria: document.getElementById('pr-cat').value, valor: document.getElementById('pr-valor').value, duracao_min: document.getElementById('pr-duracao').value, requer_anamnese: document.getElementById('pr-req-an').checked, requer_tcle: document.getElementById('pr-req-tc').checked };
+            if(id) await supabase.from('procedures').update(payload).eq('id', id); else await supabase.from('procedures').insert([payload]);
+            await loadAllClinicData(); closeModal('modal-proc'); renderProcs();
+        });
+
+        // --- FINANCEIRO ---
+        function renderFinance() {
+            let rev=0, exp=0, pend=0;
+            const tb = document.getElementById('fin-list'); tb.innerHTML = '';
+            appData.financial.sort((a,b)=>a.data_vencimento.localeCompare(b.data_vencimento)).forEach(f => {
+                if(f.status === 'Pago') { if(f.type === 'Receita') rev += Number(f.valor); else exp += Number(f.valor); }
+                if(f.status === 'Pendente' && f.type === 'Receita') pend += Number(f.valor);
+                
+                const cColor = f.type === 'Receita' ? 'text-green-600' : 'text-red-600';
+                tb.innerHTML += `<tr class="hover:bg-slate-50 border-b border-slate-50"><td class="p-4 font-semibold text-slate-600">${f.data_vencimento.split('-').reverse().join('/')}</td><td class="p-4 font-bold text-slate-800">${f.descricao}</td><td class="p-4 text-xs">${f.type} - ${f.categoria}</td><td class="p-4 font-bold ${cColor}">R$ ${f.valor}</td><td class="p-4"><span class="badge ${f.status==='Pago'?'bg-green-100 text-green-700':'bg-orange-100 text-orange-700'}">${f.status}</span></td><td class="p-4 text-right"><button onclick="editFin('${f.id}')" class="text-blue-600 font-bold">Editar</button></td></tr>`;
+            });
+            document.getElementById('fin-receitas').innerText = `R$ ${rev.toFixed(2)}`; document.getElementById('fin-despesas').innerText = `R$ ${exp.toFixed(2)}`; document.getElementById('fin-lucro').innerText = `R$ ${(rev-exp).toFixed(2)}`; document.getElementById('fin-receber').innerText = `R$ ${pend.toFixed(2)}`;
+        }
+        function editFin(id) {
+            const f = appData.financial.find(x=>x.id===id); document.getElementById('form-fin').reset();
+            document.getElementById('fn-id').value=f.id; document.getElementById('fn-desc').value=f.descricao; document.getElementById('fn-type').value=f.type; document.getElementById('fn-valor').value=f.valor; document.getElementById('fn-venc').value=f.data_vencimento; document.getElementById('fn-status').value=f.status;
+            openModal('modal-fin');
+        }
+        document.getElementById('form-fin').addEventListener('submit', async (e) => {
+            e.preventDefault(); showLoader();
+            const id = document.getElementById('fn-id').value;
+            const payload = { clinic_id: session.clinic.id, descricao: document.getElementById('fn-desc').value, type: document.getElementById('fn-type').value, valor: document.getElementById('fn-valor').value, data_vencimento: document.getElementById('fn-venc').value, status: document.getElementById('fn-status').value, categoria: 'Manual' };
+            if(payload.status==='Pago') payload.data_pagamento = new Date().toISOString().split('T')[0];
+            if(id) await supabase.from('financial').update(payload).eq('id', id); else await supabase.from('financial').insert([payload]);
+            await loadAllClinicData(); closeModal('modal-fin'); renderFinance();
+        });
+
+        // --- ESTOQUE ---
+        function renderStock() {
+            const tb = document.getElementById('stock-list'); tb.innerHTML = '';
+            const today = new Date();
+            appData.stock.forEach(s => {
+                const valDate = new Date(s.data_validade);
+                const daysExp = (valDate - today) / (1000 * 3600 * 24);
+                let st = 'bg-green-100 text-green-700', lbl = 'OK';
+                if(daysExp < 0 || s.quantidade <= 0) { st = 'bg-red-100 text-red-700'; lbl = 'CRÍTICO/VENCIDO'; }
+                else if(daysExp < 30 || s.quantidade <= s.quantidade_minima) { st = 'bg-orange-100 text-orange-700'; lbl = 'ATENÇÃO'; }
+
+                tb.innerHTML += `<tr class="hover:bg-slate-50 border-b border-slate-50"><td class="p-4 font-bold text-slate-800">${s.product_name}</td><td class="p-4 text-xs">L: ${s.lote||'-'}<br>V: ${s.data_validade.split('-').reverse().join('/')}</td><td class="p-4 font-mono text-xs text-slate-500">${s.registro_anvisa}</td><td class="p-4"><span class="badge ${st} mb-1">${lbl}</span><br><b>${s.quantidade}</b> ${s.unidade}</td><td class="p-4 text-right"><button onclick="editStock('${s.id}')" class="text-blue-600 font-bold">Gerir</button></td></tr>`;
+            });
+        }
+        function editStock(id) {
+            const s = appData.stock.find(x=>x.id===id); document.getElementById('form-stock').reset();
+            document.getElementById('st-id').value=s.id; document.getElementById('st-name').value=s.product_name; document.getElementById('st-anvisa').value=s.registro_anvisa; document.getElementById('st-lote').value=s.lote; document.getElementById('st-qtd').value=s.quantidade; document.getElementById('st-min').value=s.quantidade_minima; document.getElementById('st-unid').value=s.unidade; document.getElementById('st-val').value=s.data_validade;
+            openModal('modal-stock');
+        }
+        document.getElementById('form-stock').addEventListener('submit', async (e) => {
+            e.preventDefault(); showLoader();
+            const id = document.getElementById('st-id').value;
+            const payload = { clinic_id: session.clinic.id, product_name: document.getElementById('st-name').value, registro_anvisa: document.getElementById('st-anvisa').value, lote: document.getElementById('st-lote').value, quantidade: document.getElementById('st-qtd').value, quantidade_minima: document.getElementById('st-min').value, unidade: document.getElementById('st-unid').value, data_validade: document.getElementById('st-val').value };
+            if(id) await supabase.from('stock').update(payload).eq('id', id); else await supabase.from('stock').insert([payload]);
+            await loadAllClinicData(); closeModal('modal-stock'); renderStock();
+        });
+
+        // --- CRM ---
+        function renderKanban() {
+            const cols =['Novo Lead', 'Contato Feito', 'Avaliação Agendada', 'Proposta Enviada', 'Convertido', 'Perdido'];
+            const ids =['novo', 'contato', 'avaliacao', 'proposta', 'convertido', 'perdido'];
+            ids.forEach(i => document.getElementById(`crm-${i}`).innerHTML='');
+
+            appData.leads.forEach(l => {
+                const idx = cols.indexOf(l.status);
+                const cId = ids[idx];
+                if(!cId) return;
+                
+                let btns = '';
+                if(idx > 0 && idx < 4) btns += `<button onclick="moveLead('${l.id}', '${cols[idx-1]}')" class="text-slate-400 hover:text-purple-600"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>`;
+                if(idx < 4) btns += `<button onclick="moveLead('${l.id}', '${cols[idx+1]}')" class="text-slate-400 hover:text-purple-600"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>`;
+                if(idx < 4) btns += `<button onclick="moveLead('${l.id}', 'Perdido')" class="text-red-400 hover:text-red-600 ml-auto"><i data-lucide="x-circle" class="w-4 h-4"></i></button>`;
+                if(l.status === 'Convertido') btns += `<button onclick="convertLeadToPatient('${l.id}')" class="text-green-600 text-[10px] font-bold uppercase w-full">Gerar Ficha Paciente</button>`;
+
+                document.getElementById(`crm-${cId}`).innerHTML += `<div class="bg-white p-3 rounded-xl shadow-sm border border-slate-100"><p class="font-bold text-sm text-slate-800">${l.name}</p><p class="text-[10px] text-slate-500 mb-2">${l.procedimento_interesse||'-'} | ${l.origem}</p><div class="flex gap-2">${btns}</div></div>`;
+            });
+            lucide.createIcons();
+        }
+        async function moveLead(id, status) { showLoader(); await supabase.from('leads').update({status}).eq('id', id); await loadAllClinicData(); renderKanban(); }
+        async function convertLeadToPatient(id) {
+            const l = appData.leads.find(x=>x.id===id);
+            if(!l) return;
+            openModalPatient();
+            document.getElementById('pt-name').value = l.name;
+            document.getElementById('pt-phone').value = l.telefone;
+        }
+        document.getElementById('form-lead').addEventListener('submit', async (e) => {
+            e.preventDefault(); showLoader();
+            const payload = { clinic_id: session.clinic.id, name: document.getElementById('ld-name').value, telefone: document.getElementById('ld-phone').value, procedimento_interesse: document.getElementById('ld-int').value, origem: document.getElementById('ld-origem').value, status: 'Novo Lead' };
+            await supabase.from('leads').insert([payload]); await loadAllClinicData(); closeModal('modal-lead'); renderKanban();
+        });
+
+        // --- USUÁRIOS ---
+        function renderUsers() {
+            const tb = document.getElementById('users-list'); tb.innerHTML = '';
+            appData.users.forEach(u => {
+                tb.innerHTML += `<tr class="hover:bg-slate-50 border-b border-slate-50"><td class="p-4 font-bold text-slate-800">${u.name}</td><td class="p-4">${u.email}</td><td class="p-4 uppercase text-xs font-bold text-purple-600">${u.role}</td><td class="p-4"><span class="badge ${u.active?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${u.active?'Ativo':'Inativo'}</span></td><td class="p-4 text-right"><button onclick="toggleUser('${u.id}', ${!u.active})" class="text-slate-500 hover:text-slate-800 text-xs font-bold">Alt. Status</button></td></tr>`;
+            });
+            
+            let limit = session.clinic.plan==='BASICO'?2 : (session.clinic.plan==='EQUIPE'?5:15);
+            document.getElementById('user-plan-info').innerText = `Plano ${session.clinic.plan}: ${appData.users.length}/${limit} usuários`;
+        }
+        async function toggleUser(id, act) { showLoader(); await supabase.from('users_clinic').update({active:act}).eq('id', id); await loadAllClinicData(); renderUsers(); }
+        function openUserModal() {
+            let limit = session.clinic.plan==='BASICO'?2 : (session.clinic.plan==='EQUIPE'?5:15);
+            if(appData.users.length >= limit) return alert('Limite de usuários do plano atingido. Faça upgrade.');
+            document.getElementById('form-user').reset(); openModal('modal-user');
+        }
+        document.getElementById('form-user').addEventListener('submit', async (e) => {
+            e.preventDefault(); showLoader();
+            const pass = document.getElementById('u-pass').value;
+            if(!pass) { hideLoader(); return alert('Senha obrigatória para novos.'); }
+            const hash = await hashString(pass);
+            const payload = { clinic_id: session.clinic.id, name: document.getElementById('u-name').value, email: document.getElementById('u-email').value, password_hash: hash, role: document.getElementById('u-role').value };
+            const {error} = await supabase.from('users_clinic').insert([payload]);
+            if(error) alert('Erro: ' + error.message);
+            await loadAllClinicData(); closeModal('modal-user'); renderUsers();
+        });
+
+        // --- TCLE ---
+        function openTcle(appId, pName, prName) {
+            activeTcleApptId = appId;
+            document.getElementById('tcle-content').innerHTML = `<b>TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO (TCLE)</b><br><br>Eu, <b>${pName}</b>, autorizo a realização do procedimento estético <b>${prName}</b>.<br><br>Declaro que fui informado(a) pelo profissional responsável de forma clara e objetiva sobre todos os riscos, benefícios e cuidados pré e pós-procedimento. Estou ciente de que a estética não é uma ciência exata e que os resultados podem variar de acordo com o metabolismo e respostas individuais do meu organismo.<br><br>Assumo o compromisso de seguir rigorosamente as orientações profissionais para evitar complicações.<br><br>Data: ${new Date().toLocaleDateString()}`;
+            document.getElementById('tcle-check').checked = false;
+            openModal('modal-tcle');
+        }
+        async function signTcle() {
+            if(!document.getElementById('tcle-check').checked) return alert('Você deve marcar a caixa de consentimento.');
+            showLoader();
+            const app = appData.appointments.find(a=>a.id===activeTcleApptId);
+            const payload = { clinic_id: session.clinic.id, patient_id: app.patient_id, appointment_id: app.id, texto: document.getElementById('tcle-content').innerText, assinado: true, data_assinatura: new Date().toISOString() };
+            await supabase.from('tcle').insert([payload]);
+            hideLoader(); closeModal('modal-tcle'); alert('TCLE Assinado Eletronicamente com Sucesso!');
+        }
+    </script>
+</body>
+</html>
