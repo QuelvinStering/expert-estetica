@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExpertEstética SaaS - TESTE DRIVE</title>
+    <title>ExpertEstética SaaS - Completo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -15,187 +15,411 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
         .sidebar-item.active { background-color: #f5f3ff; color: #7c3aed; border-right: 4px solid #7c3aed; }
+        .modal-overlay { display: none; }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+        .kanban-col { min-height: 60vh; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Scrollbar customizada para o Kanban */
+        ::-webkit-scrollbar { height: 8px; width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="h-screen overflow-hidden">
+<body class="h-screen overflow-hidden text-slate-800">
 
-    <!-- 1. TELA DE LOGIN -->
-    <section id="view-login" class="view-section active h-full w-full items-center justify-center bg-slate-50">
-        <div class="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100">
+    <!-- ========================================== -->
+    <!-- VIEW 1: LOGIN                              -->
+    <!-- ========================================== -->
+    <section id="view-login" class="view-section active h-full w-full items-center justify-center bg-slate-50 relative">
+        <div class="absolute inset-0 bg-purple-900/5 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+        <div class="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100 z-10 relative">
             <div class="text-center mb-8">
-                <div class="inline-flex p-4 bg-purple-600 rounded-2xl text-white mb-4 shadow-lg"><i data-lucide="sparkles"></i></div>
-                <h2 class="text-3xl font-black text-slate-900">Expert<span class="text-purple-600">Estética</span></h2>
-                <p class="text-slate-500 font-medium text-sm">Painel de Demonstração SaaS</p>
+                <div class="inline-flex p-4 bg-purple-600 rounded-2xl text-white mb-4 shadow-lg shadow-purple-200"><i data-lucide="sparkles" class="w-8 h-8"></i></div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight">Expert<span class="text-purple-600">Estética</span></h2>
+                <p class="text-slate-500 font-medium mt-1">SaaS Management System</p>
             </div>
             <form id="login-form" class="space-y-5">
-                <input type="email" id="email" placeholder="E-mail" required class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-medium">
-                <input type="password" id="pass" placeholder="Senha" required class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-medium">
-                <button type="submit" class="w-full py-4 bg-purple-600 text-white font-bold rounded-2xl shadow-xl hover:bg-purple-700 transition">ENTRAR NO SISTEMA</button>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Usuário</label>
+                    <input type="email" id="login-email" required class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-medium">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Senha</label>
+                    <input type="password" id="login-pass" required class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500 font-medium">
+                </div>
+                <button type="submit" class="w-full py-4 bg-purple-600 text-white font-black rounded-2xl shadow-xl shadow-purple-200 hover:bg-purple-700 active:scale-95 transition-all">ACESSAR PAINEL</button>
             </form>
-            <div class="mt-6 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                Logue como Super Admin para ver o Painel Global
-            </div>
+            <div class="mt-6 text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">Acesso Restrito</div>
         </div>
     </section>
 
-    <!-- 2. PAINEL SUPER ADMIN (VISÃO GLOBAL) -->
-    <section id="view-super-admin" class="view-section h-full w-full">
-        <aside class="w-72 bg-slate-900 text-white flex flex-col p-6 shadow-2xl">
-            <div class="flex items-center gap-3 mb-10"><i data-lucide="shield-check" class="text-purple-500"></i> <span class="font-black text-xl">SUPER ADMIN</span></div>
+    <!-- ========================================== -->
+    <!-- VIEW 2: SUPER ADMIN                        -->
+    <!-- ========================================== -->
+    <section id="view-super-admin" class="view-section h-full w-full bg-slate-50">
+        <aside class="w-72 bg-slate-900 text-white flex flex-col p-6 shadow-2xl z-20">
+            <div class="flex items-center gap-3 mb-10"><div class="p-2 bg-purple-600 rounded-xl"><i data-lucide="shield-check"></i></div><span class="font-black text-xl tracking-tight">SUPER ADMIN</span></div>
             <nav class="flex-1 space-y-2">
-                <a href="#" class="flex items-center gap-3 px-4 py-3 bg-white/10 rounded-xl text-white font-bold"><i data-lucide="grid"></i> Clínicas Ativas</a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white"><i data-lucide="trending-up"></i> Faturamento MRR</a>
+                <a href="#" class="flex items-center gap-3 px-4 py-3 bg-white/10 rounded-xl text-white font-bold transition hover:bg-white/20"><i data-lucide="building"></i> Tenancies (Clínicas)</a>
             </nav>
-            <button onclick="logout()" class="py-3 text-red-400 font-bold flex items-center gap-2"><i data-lucide="log-out"></i> SAIR</button>
+            <div class="pt-6 border-t border-slate-800">
+                <button onclick="logout()" class="w-full py-3 bg-red-500/10 text-red-500 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-500 hover:text-white transition"><i data-lucide="log-out" class="w-4 h-4"></i> Encerrar Sessão</button>
+            </div>
         </aside>
+        
         <main class="flex-1 p-10 overflow-y-auto">
-            <h1 class="text-3xl font-black text-slate-800 mb-8">Gestão de Tenancies (SaaS)</h1>
+            <header class="flex justify-between items-end mb-10">
+                <div>
+                    <h1 class="text-3xl font-black text-slate-800">Gestão de Clínicas (SaaS)</h1>
+                    <p class="text-slate-500 font-medium">Administre os clientes da sua plataforma.</p>
+                </div>
+                <button onclick="openClinicModal()" class="bg-purple-600 text-white px-6 py-3 rounded-xl font-black text-xs shadow-lg shadow-purple-200 hover:bg-purple-700 transition flex items-center gap-2">
+                    <i data-lucide="plus" class="w-4 h-4"></i> NOVA CLÍNICA
+                </button>
+            </header>
+
+            <!-- KPIs Super Admin -->
             <div class="grid grid-cols-3 gap-6 mb-10">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border">
-                    <p class="text-[10px] font-black text-slate-400 uppercase">Clínicas Totais</p>
-                    <h3 class="text-4xl font-black text-slate-800">12</h3>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total de Clínicas</p>
+                    <h3 id="sa-total-clinics" class="text-4xl font-black text-slate-800 mt-1">0</h3>
                 </div>
                 <div class="bg-orange-50 p-6 rounded-3xl border border-orange-100">
-                    <p class="text-[10px] font-black text-orange-400 uppercase">Pendentes</p>
-                    <h3 class="text-4xl font-black text-orange-700">03</h3>
+                    <p class="text-[10px] font-black text-orange-400 uppercase tracking-widest">Pendentes de Ativação</p>
+                    <h3 id="sa-pending-clinics" class="text-4xl font-black text-orange-700 mt-1">0</h3>
                 </div>
                 <div class="bg-green-50 p-6 rounded-3xl border border-green-100">
-                    <p class="text-[10px] font-black text-green-400 uppercase">Receita Mensal</p>
-                    <h3 class="text-4xl font-black text-green-700">R$ 14.850</h3>
+                    <p class="text-[10px] font-black text-green-500 uppercase tracking-widest">Receita MRR Estimada</p>
+                    <h3 id="sa-mrr" class="text-4xl font-black text-green-700 mt-1">R$ 0</h3>
                 </div>
             </div>
-            <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden">
+
+            <!-- Tabela de Clínicas -->
+            <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden border border-slate-100">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        <tr><th class="p-6">Unidade</th><th class="p-6">Responsável</th><th class="p-6">Plano</th><th class="p-6">Status</th><th class="p-6 text-right">Ação</th></tr>
+                    <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
+                        <tr><th class="p-6">Unidade / Clínica</th><th class="p-6">Responsável</th><th class="p-6">Plano Assinado</th><th class="p-6">Status</th><th class="p-6 text-right">Ações</th></tr>
                     </thead>
-                    <tbody class="divide-y">
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-6 font-black">Expert Matriz SP</td>
-                            <td class="p-6 text-sm text-slate-500">Ricardo Silva</td>
-                            <td class="p-6 text-xs font-bold">EXPANSÃO</td>
-                            <td class="p-6"><span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase">ATIVO</span></td>
-                            <td class="p-6 text-right"><button onclick="loginAsClinic('Expert Matriz SP')" class="text-purple-600 font-black text-xs uppercase hover:underline">Acessar Unidade</button></td>
-                        </tr>
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-6 font-black">Clínica Bella Rose</td>
-                            <td class="p-6 text-sm text-slate-500">Ana Costa</td>
-                            <td class="p-6 text-xs font-bold">EQUIPE</td>
-                            <td class="p-6"><span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-[10px] font-black uppercase">PENDENTE</span></td>
-                            <td class="p-6 text-right"><button class="bg-green-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">APROVAR AGORA</button></td>
-                        </tr>
+                    <tbody id="sa-clinics-table" class="divide-y divide-slate-50">
+                        <!-- Injetado via JS -->
                     </tbody>
                 </table>
             </div>
         </main>
     </section>
 
-    <!-- 3. VISÃO DA CLÍNICA (SISTEMA ISOLADO) -->
-    <section id="view-clinic" class="view-section h-full w-full">
-        <aside class="w-64 bg-white border-r flex flex-col shadow-2xl z-20 p-6">
+    <!-- Modal: Clínica (Super Admin) -->
+    <div id="modal-clinic" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl">
+            <h3 id="modal-clinic-title" class="font-black text-slate-800 text-xl mb-6">Cadastrar Nova Clínica</h3>
+            <form id="form-clinic" class="space-y-4">
+                <input type="hidden" id="c-id">
+                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Nome da Clínica</label><input type="text" id="c-name" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500"></div>
+                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Nome do Responsável</label><input type="text" id="c-owner" required class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Plano</label>
+                        <select id="c-plan" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-slate-700">
+                            <option value="BASICO">Básico (R$ 99)</option>
+                            <option value="EQUIPE">Equipe (R$ 249)</option>
+                            <option value="EXPANSAO">Expansão (R$ 399)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Status</label>
+                        <select id="c-status" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none font-bold text-slate-700">
+                            <option value="ATIVO">Ativo</option>
+                            <option value="PENDENTE">Pendente</option>
+                            <option value="INATIVO">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-6">
+                    <button type="button" onclick="closeModal('modal-clinic')" class="flex-1 py-4 font-bold text-slate-500 bg-slate-100 rounded-2xl hover:bg-slate-200 transition">Cancelar</button>
+                    <button type="submit" class="flex-1 py-4 bg-purple-600 text-white font-black rounded-2xl shadow-xl shadow-purple-200 hover:bg-purple-700 transition">Salvar Dados</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: CLÍNICA (SISTEMA INTERNO)          -->
+    <!-- ========================================== -->
+    <section id="view-clinic" class="view-section h-full w-full bg-slate-50">
+        <aside class="w-64 bg-white border-r border-slate-100 flex flex-col shadow-2xl z-20 p-6">
             <div class="mb-10 text-center">
-                <div class="w-12 h-12 bg-purple-600 rounded-2xl mx-auto mb-3 flex items-center justify-center text-white"><i data-lucide="sparkles"></i></div>
-                <h2 id="display-clinic-name" class="font-black text-slate-800 truncate uppercase text-xs tracking-tight">Clínica Expert</h2>
-                <span class="text-[9px] font-black bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">UNIDADE ATIVA</span>
+                <div class="w-12 h-12 bg-purple-600 rounded-2xl mx-auto mb-3 flex items-center justify-center text-white shadow-lg shadow-purple-200"><i data-lucide="sparkles"></i></div>
+                <h2 id="cv-clinic-name" class="font-black text-slate-800 truncate uppercase text-xs tracking-tight">Clínica</h2>
+                <span id="cv-clinic-plan" class="text-[9px] font-black bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full mt-1 inline-block">PLANO</span>
             </div>
             <nav class="flex-1 space-y-1">
-                <a href="#" onclick="showTab('dashboard')" class="sidebar-item active flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 transition"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
-                <a href="#" onclick="showTab('agenda')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 transition"><i data-lucide="calendar" class="w-4 h-4"></i> Agenda</a>
-                <a href="#" onclick="showTab('pacientes')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 transition"><i data-lucide="users" class="w-4 h-4"></i> Pacientes</a>
-                <a href="#" onclick="showTab('financeiro')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 transition"><i data-lucide="dollar-sign" class="w-4 h-4"></i> Financeiro</a>
-                <a href="#" onclick="showTab('crm')" class="sidebar-item flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-400 transition"><i data-lucide="target" class="w-4 h-4"></i> CRM</a>
+                <button onclick="showTab('dashboard')" class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 transition"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard</button>
+                <button onclick="showTab('agenda')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 transition"><i data-lucide="calendar" class="w-5 h-5"></i> Agenda</button>
+                <button onclick="showTab('pacientes')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 transition"><i data-lucide="users" class="w-5 h-5"></i> Pacientes</button>
+                <button onclick="showTab('financeiro')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 transition"><i data-lucide="dollar-sign" class="w-5 h-5"></i> Financeiro</button>
+                <button onclick="showTab('crm')" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-500 transition"><i data-lucide="target" class="w-5 h-5"></i> CRM Leads</button>
             </nav>
-            <button onclick="logout()" class="p-4 text-xs font-bold text-slate-400 hover:text-red-500 transition border-t mt-4 flex items-center gap-2"><i data-lucide="log-out" class="w-4 h-4"></i> SAIR DA UNIDADE</button>
+            <button onclick="exitClinic()" class="p-4 text-xs font-black text-slate-400 hover:text-red-500 transition border-t border-slate-100 mt-4 flex items-center justify-center gap-2"><i data-lucide="arrow-left" class="w-4 h-4"></i> VOLTAR AO ADMIN</button>
         </aside>
 
-        <main class="flex-1 flex flex-col overflow-hidden bg-slate-50">
-            <header class="h-16 bg-white border-b px-8 flex items-center justify-between">
-                <h2 id="tab-title" class="text-sm font-black text-slate-800 uppercase tracking-widest">Dashboard</h2>
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-bold text-slate-400 italic">Unidade: <span class="text-slate-800" id="header-clinic">...</span></span>
-                    <img src="https://ui-avatars.com/api/?background=7c3aed&color=fff&name=Dr" class="w-8 h-8 rounded-full shadow-lg">
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <header class="h-20 bg-white border-b border-slate-100 px-10 flex items-center justify-between z-10">
+                <h2 id="cv-tab-title" class="text-lg font-black text-slate-800 uppercase tracking-widest">Dashboard</h2>
+                <div class="flex items-center gap-3 bg-slate-50 p-2 pr-4 rounded-full border border-slate-100">
+                    <img src="https://ui-avatars.com/api/?background=7c3aed&color=fff&name=User" class="w-8 h-8 rounded-full shadow-md">
+                    <span id="cv-owner-name" class="text-xs font-black text-slate-700">Responsável</span>
                 </div>
             </header>
 
-            <section class="flex-1 overflow-y-auto p-8">
+            <section class="flex-1 overflow-y-auto p-10 relative">
+                
                 <!-- ABA: DASHBOARD -->
                 <div id="tab-dashboard" class="tab-content active space-y-8">
                     <div class="grid grid-cols-4 gap-6">
-                        <div class="bg-white p-6 rounded-3xl shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Faturamento</p><h3 class="text-2xl font-black text-purple-600">R$ 12.450</h3></div>
-                        <div class="bg-white p-6 rounded-3xl shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Pacientes</p><h3 class="text-2xl font-black text-slate-800">142</h3></div>
-                        <div class="bg-white p-6 rounded-3xl shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Consultas Hoje</p><h3 class="text-2xl font-black text-slate-800">08</h3></div>
-                        <div class="bg-white p-6 rounded-3xl shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Ociosidade</p><h3 class="text-2xl font-black text-red-500">14%</h3></div>
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faturamento Mês</p><h3 id="dash-rev" class="text-3xl font-black text-green-600 mt-1">R$ 0</h3></div>
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Pacientes</p><h3 id="dash-pat" class="text-3xl font-black text-slate-800 mt-1">0</h3></div>
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Consultas Hoje</p><h3 id="dash-appt" class="text-3xl font-black text-purple-600 mt-1">0</h3></div>
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Novos Leads</p><h3 id="dash-leads" class="text-3xl font-black text-orange-500 mt-1">0</h3></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-8">
-                        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl h-80"><canvas id="demoChart"></canvas></div>
-                        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl">
-                            <h4 class="font-black text-xs uppercase text-slate-400 mb-6">Próximos da Agenda</h4>
-                            <div class="space-y-4">
-                                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl"><div class="text-xs font-black">09:00 - Maria Silva</div><span class="text-[9px] font-black bg-blue-100 text-blue-600 px-2 py-1 rounded-full uppercase">Botox</span></div>
-                                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl"><div class="text-xs font-black">10:30 - João Souza</div><span class="text-[9px] font-black bg-purple-100 text-purple-600 px-2 py-1 rounded-full uppercase">Lipo</span></div>
+                    <div class="grid grid-cols-3 gap-8">
+                        <div class="col-span-2 bg-white p-8 rounded-[2rem] shadow-xl border border-slate-50 h-96">
+                            <h4 class="font-black text-xs uppercase text-slate-400 mb-6 tracking-widest">Receita Semanal</h4>
+                            <canvas id="dash-chart"></canvas>
+                        </div>
+                        <div class="col-span-1 bg-white p-8 rounded-[2rem] shadow-xl border border-slate-50 h-96 overflow-y-auto">
+                            <h4 class="font-black text-xs uppercase text-slate-400 mb-6 tracking-widest">Agenda de Hoje</h4>
+                            <div id="dash-agenda-list" class="space-y-4">
+                                <!-- Preenchido via JS -->
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ABA: AGENDA (SIMULAÇÃO) -->
+                <!-- ABA: AGENDA -->
                 <div id="tab-agenda" class="tab-content">
-                    <div class="bg-white rounded-[2rem] shadow-2xl p-0 overflow-hidden border">
-                        <div class="p-6 bg-slate-50 border-b flex justify-between items-center">
-                            <h3 class="font-black text-xs text-slate-800 uppercase tracking-widest">Calendário Inteligente</h3>
-                            <button class="bg-purple-600 text-white text-[10px] px-4 py-2 rounded-xl font-bold">+ NOVO AGENDAMENTO</button>
+                    <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
+                        <div class="p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="font-black text-xs text-slate-700 uppercase tracking-widest">Controle de Agendamentos</h3>
+                            <button onclick="openAgendaModal()" class="bg-purple-600 text-white text-[10px] font-black px-6 py-3 rounded-xl shadow-lg shadow-purple-200 hover:bg-purple-700 transition">+ NOVO AGENDAMENTO</button>
                         </div>
                         <table class="w-full text-left">
-                            <thead class="bg-white text-[9px] font-black text-slate-400 uppercase border-b">
-                                <tr><th class="p-6">Horário</th><th class="p-6">Paciente</th><th class="p-6">Procedimento</th><th class="p-6">Status</th></tr>
+                            <thead class="bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
+                                <tr><th class="p-6">Data / Hora</th><th class="p-6">Paciente</th><th class="p-6">Procedimento</th><th class="p-6">Status</th><th class="p-6 text-right">Ações</th></tr>
                             </thead>
-                            <tbody class="divide-y">
-                                <tr><td class="p-6 font-black">09:00</td><td class="p-6 font-bold">Maria Silva</td><td class="p-6 text-sm">Toxina Botulínica</td><td class="p-6"><span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[9px] font-black">CONFIRMADO</span></td></tr>
-                                <tr><td class="p-6 font-black">10:30</td><td class="p-6 font-bold">João Souza</td><td class="p-6 text-sm">Limpeza de Pele</td><td class="p-6"><span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[9px] font-black">EM ATENDIMENTO</span></td></tr>
-                            </tbody>
+                            <tbody id="agenda-table" class="divide-y divide-slate-50"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- OUTROS MÓDULOS (AVISO) -->
-                <div id="tab-pacientes" class="tab-content text-center py-20 bg-white rounded-[2.5rem] shadow-xl">
-                    <div class="w-20 h-20 bg-slate-100 rounded-full mx-auto mb-6 flex items-center justify-center text-slate-400"><i data-lucide="users" class="w-10 h-10"></i></div>
-                    <h2 class="text-xl font-black text-slate-800 uppercase tracking-widest">Módulo de Pacientes</h2>
-                    <p class="text-slate-400 mt-2 font-medium">Aqui aparecerá a lista completa integrada ao PostgreSQL.</p>
+                <!-- ABA: PACIENTES -->
+                <div id="tab-pacientes" class="tab-content">
+                    <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
+                        <div class="p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                            <input type="text" id="patient-search" onkeyup="renderPatients()" placeholder="Buscar paciente por nome..." class="w-72 px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-purple-500">
+                            <button onclick="openPatientModal()" class="bg-purple-600 text-white text-[10px] font-black px-6 py-3 rounded-xl shadow-lg shadow-purple-200 hover:bg-purple-700 transition">+ CADASTRAR PACIENTE</button>
+                        </div>
+                        <table class="w-full text-left">
+                            <thead class="bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
+                                <tr><th class="p-6">Nome Completo</th><th class="p-6">Contato</th><th class="p-6">Data Nasc.</th><th class="p-6 text-right">Ações</th></tr>
+                            </thead>
+                            <tbody id="patients-table" class="divide-y divide-slate-50"></tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <!-- CRM KANBAN -->
-                <div id="tab-crm" class="tab-content">
-                    <div class="flex gap-6 overflow-x-auto pb-6">
-                        <div class="min-w-[300px] bg-slate-200/50 p-4 rounded-3xl h-[70vh]">
-                            <h4 class="text-[10px] font-black uppercase text-slate-500 mb-4 px-2">Novos Leads</h4>
-                            <div class="bg-white p-4 rounded-2xl shadow-sm border mb-3"><p class="font-black text-sm">Carla Almeida</p><p class="text-[10px] text-purple-600 font-bold">Botox</p></div>
+                <!-- ABA: FINANCEIRO -->
+                <div id="tab-financeiro" class="tab-content">
+                    <div class="grid grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-green-500"><p class="text-[10px] font-black text-slate-400 uppercase">Receitas</p><h3 id="fin-rev" class="text-3xl font-black text-green-600 mt-1">R$ 0</h3></div>
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-red-500"><p class="text-[10px] font-black text-slate-400 uppercase">Despesas</p><h3 id="fin-exp" class="text-3xl font-black text-red-600 mt-1">R$ 0</h3></div>
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border-l-4 border-blue-500"><p class="text-[10px] font-black text-slate-400 uppercase">Saldo Líquido</p><h3 id="fin-net" class="text-3xl font-black text-blue-600 mt-1">R$ 0</h3></div>
+                    </div>
+                    <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
+                        <div class="p-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="font-black text-xs text-slate-700 uppercase tracking-widest">Fluxo de Caixa</h3>
+                            <button onclick="openFinanceModal()" class="bg-purple-600 text-white text-[10px] font-black px-6 py-3 rounded-xl shadow-lg shadow-purple-200 hover:bg-purple-700 transition">+ NOVO LANÇAMENTO</button>
                         </div>
-                        <div class="min-w-[300px] bg-slate-200/50 p-4 rounded-3xl h-[70vh]">
-                            <h4 class="text-[10px] font-black uppercase text-slate-500 mb-4 px-2">Avaliação</h4>
-                            <div class="bg-white p-4 rounded-2xl shadow-sm border border-purple-200"><p class="font-black text-sm">Mariana Costa</p><p class="text-[10px] text-blue-500 font-bold">Lipo sem cortes</p></div>
+                        <table class="w-full text-left">
+                            <thead class="bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest border-b">
+                                <tr><th class="p-6">Data</th><th class="p-6">Descrição</th><th class="p-6">Categoria</th><th class="p-6">Valor</th><th class="p-6 text-right">Ações</th></tr>
+                            </thead>
+                            <tbody id="finance-table" class="divide-y divide-slate-50"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ABA: CRM KANBAN -->
+                <div id="tab-crm" class="tab-content h-full">
+                    <div class="flex justify-between items-center mb-6">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gestão de Oportunidades</p>
+                        <button onclick="openLeadModal()" class="bg-purple-600 text-white text-[10px] font-black px-6 py-3 rounded-xl shadow-lg shadow-purple-200 hover:bg-purple-700 transition">+ NOVO LEAD</button>
+                    </div>
+                    <div class="flex gap-6 overflow-x-auto pb-6">
+                        <div class="min-w-[300px] bg-slate-200/50 rounded-[2rem] p-4 kanban-col">
+                            <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 px-2">📥 Novo Lead</h4>
+                            <div id="crm-NOVO" class="space-y-3"></div>
+                        </div>
+                        <div class="min-w-[300px] bg-blue-50/50 rounded-[2rem] p-4 kanban-col border border-blue-100">
+                            <h4 class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4 px-2">📅 Avaliação</h4>
+                            <div id="crm-AVALIACAO" class="space-y-3"></div>
+                        </div>
+                        <div class="min-w-[300px] bg-orange-50/50 rounded-[2rem] p-4 kanban-col border border-orange-100">
+                            <h4 class="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-4 px-2">📝 Proposta</h4>
+                            <div id="crm-PROPOSTA" class="space-y-3"></div>
+                        </div>
+                        <div class="min-w-[300px] bg-green-50/50 rounded-[2rem] p-4 kanban-col border border-green-100">
+                            <h4 class="text-[10px] font-black text-green-600 uppercase tracking-widest mb-4 px-2">✅ Convertido</h4>
+                            <div id="crm-CONVERTIDO" class="space-y-3"></div>
+                        </div>
+                        <div class="min-w-[300px] bg-red-50/50 rounded-[2rem] p-4 kanban-col border border-red-100">
+                            <h4 class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-4 px-2">❌ Perdido</h4>
+                            <div id="crm-PERDIDO" class="space-y-3"></div>
                         </div>
                     </div>
                 </div>
+
             </section>
         </main>
     </section>
 
+    <!-- Modais da Clínica -->
+    <!-- Modal: Paciente -->
+    <div id="modal-patient" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl">
+            <h3 class="font-black text-slate-800 text-xl mb-6">Cadastro de Paciente</h3>
+            <form id="form-patient" class="space-y-4">
+                <input type="hidden" id="p-id">
+                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Nome Completo</label><input type="text" id="p-name" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Telefone/WhatsApp</label><input type="text" id="p-phone" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                    <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Data Nasc.</label><input type="date" id="p-birth" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                </div>
+                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">E-mail</label><input type="email" id="p-email" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Observações</label><textarea id="p-notes" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700 h-24"></textarea></div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeModal('modal-patient')" class="flex-1 py-4 font-bold text-slate-500 bg-slate-100 rounded-2xl hover:bg-slate-200">Cancelar</button>
+                    <button type="submit" class="flex-1 py-4 bg-purple-600 text-white font-black rounded-2xl">Salvar Paciente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Agenda -->
+    <div id="modal-agenda" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl">
+            <h3 class="font-black text-slate-800 text-xl mb-6">Agendamento</h3>
+            <form id="form-agenda" class="space-y-4">
+                <input type="hidden" id="a-id">
+                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Paciente</label><select id="a-patient" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></select></div>
+                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Procedimento</label><input type="text" id="a-proc" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Data</label><input type="date" id="a-date" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                    <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Hora</label><input type="time" id="a-time" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Status</label>
+                    <select id="a-status" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700">
+                        <option value="AGENDADO">Agendado</option>
+                        <option value="CONFIRMADO">Confirmado</option>
+                        <option value="FINALIZADO">Finalizado</option>
+                        <option value="CANCELADO">Cancelado</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeModal('modal-agenda')" class="flex-1 py-4 font-bold text-slate-500 bg-slate-100 rounded-2xl hover:bg-slate-200">Cancelar</button>
+                    <button type="submit" class="flex-1 py-4 bg-purple-600 text-white font-black rounded-2xl">Salvar Agendamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Financeiro -->
+    <div id="modal-finance" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl">
+            <h3 class="font-black text-slate-800 text-xl mb-6">Lançamento Financeiro</h3>
+            <form id="form-finance" class="space-y-4">
+                <input type="hidden" id="f-id">
+                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Descrição</label><input type="text" id="f-desc" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Valor (R$)</label><input type="number" step="0.01" id="f-amount" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                    <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Data</label><input type="date" id="f-date" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Tipo</label>
+                        <select id="f-type" class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700">
+                            <option value="RECEITA">Receita (+)</option>
+                            <option value="DESPESA">Despesa (-)</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Categoria</label><input type="text" id="f-cat" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700" placeholder="Ex: Procedimentos, Aluguel"></div>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeModal('modal-finance')" class="flex-1 py-4 font-bold text-slate-500 bg-slate-100 rounded-2xl hover:bg-slate-200">Cancelar</button>
+                    <button type="submit" class="flex-1 py-4 bg-purple-600 text-white font-black rounded-2xl">Salvar Lançamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Lead CRM -->
+    <div id="modal-lead" class="modal-overlay fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl">
+            <h3 class="font-black text-slate-800 text-xl mb-6">Lead / Oportunidade</h3>
+            <form id="form-lead" class="space-y-4">
+                <input type="hidden" id="l-id">
+                <input type="hidden" id="l-status" value="NOVO">
+                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Nome do Lead</label><input type="text" id="l-name" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Contato (WhatsApp)</label><input type="text" id="l-contact" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Interesse</label><input type="text" id="l-proc" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                    <div><label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Origem (Instagram, etc)</label><input type="text" id="l-source" required class="w-full p-4 bg-slate-50 border rounded-2xl outline-none font-bold text-slate-700"></div>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeModal('modal-lead')" class="flex-1 py-4 font-bold text-slate-500 bg-slate-100 rounded-2xl hover:bg-slate-200">Cancelar</button>
+                    <button type="submit" class="flex-1 py-4 bg-purple-600 text-white font-black rounded-2xl">Salvar Lead</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT PRINCIPAL -->
     <script>
-        // LOGIN MOCK
+        // ==========================================
+        // 1. BANCO DE DADOS LOCAL (LOCALSTORAGE)
+        // ==========================================
+        const getDb = (key) => JSON.parse(localStorage.getItem(key) || '[]');
+        const setDb = (key, data) => localStorage.setItem(key, JSON.stringify(data));
+        const genId = () => Math.random().toString(36).substr(2, 9);
+
+        // Inicializar dados de exemplo se estiver vazio
+        function initDB() {
+            if (getDb('expert_clinics').length === 0) {
+                setDb('expert_clinics',[
+                    { id: 'c1', name: 'Expert Matriz SP', owner: 'Ricardo Silva', plan: 'EXPANSAO', status: 'ATIVO', createdAt: new Date().toISOString() },
+                    { id: 'c2', name: 'Clínica Bella Rose', owner: 'Ana Costa', plan: 'EQUIPE', status: 'PENDENTE', createdAt: new Date().toISOString() }
+                ]);
+            }
+        }
+        initDB();
+
+        let currentClinicId = null;
+        let dashChartInstance = null;
+
+        // ==========================================
+        // 2. NAVEGAÇÃO E AUTENTICAÇÃO
+        // ==========================================
         document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('pass').value;
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
 
-            // Suas credenciais reais para o teste
             if (email === 'quelvinrojostering16@gmail.com' && pass === 'IABADABADU@2025AUSTRIA') {
                 switchView('view-super-admin');
-            } else if (pass === '123') { // Para testar como clínica comum
-                loginAsClinic('Minha Clínica');
+                renderSuperAdmin();
             } else {
-                alert("Erro: Use as credenciais do Quelvin Rojo!");
+                alert("Credenciais inválidas. Acesso restrito ao Super Admin.");
             }
         });
 
@@ -203,34 +427,544 @@
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             lucide.createIcons();
-            if(viewId === 'view-clinic') initChart();
-        }
-
-        function loginAsClinic(name) {
-            document.getElementById('display-clinic-name').innerText = name;
-            document.getElementById('header-clinic').innerText = name;
-            switchView('view-clinic');
         }
 
         function showTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
-            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            document.getElementById('tab-title').innerText = tabId;
+            
+            // Controle de Menu Ativo
+            document.querySelectorAll('.sidebar-item').forEach(i => {
+                i.classList.remove('active', 'bg-purple-50', 'text-purple-600');
+                i.classList.add('text-slate-500');
+            });
+            const clickedBtn = event.currentTarget;
+            if(clickedBtn) {
+                clickedBtn.classList.add('active', 'bg-purple-50', 'text-purple-600');
+                clickedBtn.classList.remove('text-slate-500');
+            }
+
+            // Textos do header
+            const titles = { 'dashboard': 'Dashboard', 'agenda': 'Agenda', 'pacientes': 'Pacientes', 'financeiro': 'Financeiro', 'crm': 'CRM Leads' };
+            document.getElementById('cv-tab-title').innerText = titles[tabId];
+
+            // Renderizar dados da aba
+            if (tabId === 'dashboard') renderDashboard();
+            if (tabId === 'agenda') renderAgenda();
+            if (tabId === 'pacientes') renderPatients();
+            if (tabId === 'financeiro') renderFinance();
+            if (tabId === 'crm') renderCRM();
         }
 
-        function logout() { location.reload(); }
+        function logout() {
+            currentClinicId = null;
+            document.getElementById('login-form').reset();
+            switchView('view-login');
+        }
 
-        function initChart() {
-            const ctx = document.getElementById('demoChart').getContext('2d');
-            new Chart(ctx, {
+        function exitClinic() {
+            currentClinicId = null;
+            switchView('view-super-admin');
+            renderSuperAdmin();
+        }
+
+        function openModal(modalId) { document.getElementById(modalId).classList.add('active'); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+
+        // ==========================================
+        // 3. MÓDULO: SUPER ADMIN
+        // ==========================================
+        function renderSuperAdmin() {
+            const clinics = getDb('expert_clinics');
+            const plansCost = { 'BASICO': 99, 'EQUIPE': 249, 'EXPANSAO': 399 };
+            
+            let mrr = 0;
+            let pending = 0;
+
+            const tbody = document.getElementById('sa-clinics-table');
+            tbody.innerHTML = '';
+
+            clinics.forEach(c => {
+                if(c.status === 'ATIVO') mrr += plansCost[c.plan] || 0;
+                if(c.status === 'PENDENTE') pending++;
+
+                const statusColor = c.status === 'ATIVO' ? 'bg-green-100 text-green-700' : (c.status === 'PENDENTE' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700');
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                        <td class="p-6 font-black text-slate-800">${c.name}</td>
+                        <td class="p-6 font-bold text-slate-500">${c.owner}</td>
+                        <td class="p-6"><span class="bg-slate-100 px-3 py-1 rounded-lg text-[10px] font-black text-slate-600">${c.plan}</span></td>
+                        <td class="p-6"><span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${statusColor}">${c.status}</span></td>
+                        <td class="p-6 text-right space-x-2">
+                            <button onclick="accessClinic('${c.id}')" class="text-xs font-black text-purple-600 hover:underline">ACESSAR</button>
+                            <button onclick="editClinic('${c.id}')" class="text-xs font-black text-blue-500 hover:underline">EDITAR</button>
+                            <button onclick="deleteClinic('${c.id}')" class="text-xs font-black text-red-500 hover:underline">EXCLUIR</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('sa-total-clinics').innerText = clinics.length;
+            document.getElementById('sa-pending-clinics').innerText = pending;
+            document.getElementById('sa-mrr').innerText = `R$ ${mrr}`;
+            lucide.createIcons();
+        }
+
+        function openClinicModal() {
+            document.getElementById('form-clinic').reset();
+            document.getElementById('c-id').value = '';
+            document.getElementById('modal-clinic-title').innerText = 'Cadastrar Nova Clínica';
+            openModal('modal-clinic');
+        }
+
+        function editClinic(id) {
+            const clinic = getDb('expert_clinics').find(c => c.id === id);
+            if(!clinic) return;
+            document.getElementById('c-id').value = clinic.id;
+            document.getElementById('c-name').value = clinic.name;
+            document.getElementById('c-owner').value = clinic.owner;
+            document.getElementById('c-plan').value = clinic.plan;
+            document.getElementById('c-status').value = clinic.status;
+            document.getElementById('modal-clinic-title').innerText = 'Editar Clínica';
+            openModal('modal-clinic');
+        }
+
+        document.getElementById('form-clinic').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('c-id').value;
+            let clinics = getDb('expert_clinics');
+
+            const data = {
+                name: document.getElementById('c-name').value,
+                owner: document.getElementById('c-owner').value,
+                plan: document.getElementById('c-plan').value,
+                status: document.getElementById('c-status').value,
+            };
+
+            if(id) { // Edit
+                const index = clinics.findIndex(c => c.id === id);
+                clinics[index] = { ...clinics[index], ...data };
+            } else { // Create
+                clinics.push({ id: genId(), createdAt: new Date().toISOString(), ...data });
+            }
+
+            setDb('expert_clinics', clinics);
+            closeModal('modal-clinic');
+            renderSuperAdmin();
+        });
+
+        function deleteClinic(id) {
+            if(!confirm("CUIDADO! Isso deletará a clínica permanentemente. Deseja continuar?")) return;
+            const clinics = getDb('expert_clinics').filter(c => c.id !== id);
+            setDb('expert_clinics', clinics);
+            renderSuperAdmin();
+        }
+
+        function accessClinic(id) {
+            const clinic = getDb('expert_clinics').find(c => c.id === id);
+            if(!clinic) return;
+            currentClinicId = clinic.id;
+            
+            // Preenche UI da Clínica
+            document.getElementById('cv-clinic-name').innerText = clinic.name;
+            document.getElementById('cv-clinic-plan').innerText = `PLANO ${clinic.plan}`;
+            document.getElementById('cv-owner-name').innerText = clinic.owner;
+            document.getElementById('header-clinic').innerText = clinic.name;
+
+            switchView('view-clinic');
+            
+            // Simular clique no botão de Dashboard para renderizar
+            const dashBtn = document.querySelector('.sidebar-item');
+            dashBtn.click();
+        }
+
+        // ==========================================
+        // 4. MÓDULOS DA CLÍNICA (MULTI-TENANT)
+        // ==========================================
+        const getClinicData = (table) => getDb(table).filter(item => item.clinicId === currentClinicId);
+
+        // --- DASHBOARD ---
+        function renderDashboard() {
+            const pts = getClinicData('expert_patients');
+            const apps = getClinicData('expert_appointments');
+            const trans = getClinicData('expert_transactions');
+            const leads = getClinicData('expert_leads');
+            const hojeStr = new Date().toISOString().split('T')[0];
+
+            const rev = trans.filter(t => t.type === 'RECEITA').reduce((acc, t) => acc + parseFloat(t.amount), 0);
+            const hojeApps = apps.filter(a => a.date === hojeStr);
+
+            document.getElementById('dash-rev').innerText = `R$ ${rev.toFixed(2)}`;
+            document.getElementById('dash-pat').innerText = pts.length;
+            document.getElementById('dash-appt').innerText = hojeApps.length;
+            document.getElementById('dash-leads').innerText = leads.filter(l => l.status === 'NOVO').length;
+
+            // Agenda preview
+            const agendaList = document.getElementById('dash-agenda-list');
+            if(hojeApps.length === 0) {
+                agendaList.innerHTML = `<p class="text-xs text-slate-400">Nenhuma consulta agendada para hoje.</p>`;
+            } else {
+                agendaList.innerHTML = hojeApps.sort((a,b) => a.time.localeCompare(b.time)).map(a => {
+                    const p = pts.find(pt => pt.id === a.patientId) || {name: 'Desconhecido'};
+                    return `<div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div class="text-xs font-black text-slate-700">${a.time} - ${p.name}</div>
+                                <span class="text-[9px] font-black bg-purple-100 text-purple-600 px-2 py-1 rounded-full uppercase">${a.procedure}</span>
+                            </div>`;
+                }).join('');
+            }
+
+            // Gráfico
+            const ctx = document.getElementById('dash-chart').getContext('2d');
+            if(dashChartInstance) dashChartInstance.destroy();
+            dashChartInstance = new Chart(ctx, {
                 type: 'line',
-                data: { labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'], datasets: [{ label: 'Vendas', data: [12, 19, 15, 25, 22], borderColor: '#7c3aed', tension: 0.4 }] },
-                options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+                data: { 
+                    labels:['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'], 
+                    datasets:[{ label: 'Receita Diária (R$)', data:[150, 420, 310, 890, 500, 1200], borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.1)', tension: 0.4, fill: true }] 
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
         }
 
+        // --- PACIENTES ---
+        function renderPatients() {
+            const search = document.getElementById('patient-search').value.toLowerCase();
+            const pts = getClinicData('expert_patients').filter(p => p.name.toLowerCase().includes(search));
+            const tbody = document.getElementById('patients-table');
+            
+            tbody.innerHTML = pts.map(p => `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                    <td class="p-6 font-black text-slate-800">${p.name}</td>
+                    <td class="p-6 font-bold text-slate-500">${p.phone || '-'} <br><span class="text-[10px] font-normal">${p.email || '-'}</span></td>
+                    <td class="p-6 font-bold text-slate-500">${p.birthDate ? new Date(p.birthDate).toLocaleDateString() : '-'}</td>
+                    <td class="p-6 text-right space-x-3">
+                        <button onclick="editPatient('${p.id}')" class="text-blue-500 hover:text-blue-700"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                        <button onclick="deletePatient('${p.id}')" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function openPatientModal() {
+            document.getElementById('form-patient').reset();
+            document.getElementById('p-id').value = '';
+            openModal('modal-patient');
+        }
+
+        function editPatient(id) {
+            const pt = getClinicData('expert_patients').find(p => p.id === id);
+            if(!pt) return;
+            document.getElementById('p-id').value = pt.id;
+            document.getElementById('p-name').value = pt.name;
+            document.getElementById('p-phone').value = pt.phone;
+            document.getElementById('p-birth').value = pt.birthDate;
+            document.getElementById('p-email').value = pt.email;
+            document.getElementById('p-notes').value = pt.notes;
+            openModal('modal-patient');
+        }
+
+        document.getElementById('form-patient').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('p-id').value;
+            let allPts = getDb('expert_patients');
+            
+            const data = {
+                clinicId: currentClinicId,
+                name: document.getElementById('p-name').value,
+                phone: document.getElementById('p-phone').value,
+                birthDate: document.getElementById('p-birth').value,
+                email: document.getElementById('p-email').value,
+                notes: document.getElementById('p-notes').value
+            };
+
+            if(id) {
+                const idx = allPts.findIndex(p => p.id === id);
+                allPts[idx] = { ...allPts[idx], ...data };
+            } else {
+                allPts.push({ id: genId(), createdAt: new Date().toISOString(), ...data });
+            }
+
+            setDb('expert_patients', allPts);
+            closeModal('modal-patient');
+            renderPatients();
+        });
+
+        function deletePatient(id) {
+            if(!confirm("Excluir este paciente?")) return;
+            let allPts = getDb('expert_patients').filter(p => p.id !== id);
+            setDb('expert_patients', allPts);
+            renderPatients();
+        }
+
+        // --- AGENDA ---
+        function renderAgenda() {
+            const apps = getClinicData('expert_appointments').sort((a,b) => new Date(a.date+'T'+a.time) - new Date(b.date+'T'+b.time));
+            const pts = getClinicData('expert_patients');
+            const tbody = document.getElementById('agenda-table');
+
+            tbody.innerHTML = apps.map(a => {
+                const pt = pts.find(p => p.id === a.patientId) || {name: 'Excluído'};
+                const dt = new Date(a.date).toLocaleDateString();
+                const colors = {'AGENDADO':'bg-slate-100 text-slate-700', 'CONFIRMADO':'bg-blue-100 text-blue-700', 'FINALIZADO':'bg-green-100 text-green-700', 'CANCELADO':'bg-red-100 text-red-700'};
+                
+                return `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                    <td class="p-6"><div class="font-black text-slate-800">${dt}</div><div class="text-xs font-bold text-slate-400">${a.time}</div></td>
+                    <td class="p-6 font-bold text-slate-700">${pt.name}</td>
+                    <td class="p-6 font-bold text-purple-600 text-xs">${a.procedure}</td>
+                    <td class="p-6"><span class="px-3 py-1 rounded-full text-[9px] font-black tracking-widest ${colors[a.status]}">${a.status}</span></td>
+                    <td class="p-6 text-right space-x-2">
+                        <button onclick="editAgenda('${a.id}')" class="text-blue-500 hover:text-blue-700"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                        <button onclick="deleteAgenda('${a.id}')" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function openAgendaModal() {
+            document.getElementById('form-agenda').reset();
+            document.getElementById('a-id').value = '';
+            
+            // Popula o select de pacientes
+            const pts = getClinicData('expert_patients');
+            const select = document.getElementById('a-patient');
+            select.innerHTML = '<option value="">Selecione um paciente...</option>' + pts.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            
+            if(pts.length === 0) alert("Cadastre pacientes primeiro!");
+            else openModal('modal-agenda');
+        }
+
+        function editAgenda(id) {
+            openAgendaModal(); // para popular select
+            const a = getClinicData('expert_appointments').find(x => x.id === id);
+            if(!a) return;
+            document.getElementById('a-id').value = a.id;
+            document.getElementById('a-patient').value = a.patientId;
+            document.getElementById('a-proc').value = a.procedure;
+            document.getElementById('a-date').value = a.date;
+            document.getElementById('a-time').value = a.time;
+            document.getElementById('a-status').value = a.status;
+        }
+
+        document.getElementById('form-agenda').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('a-id').value;
+            let all = getDb('expert_appointments');
+            
+            const data = {
+                clinicId: currentClinicId,
+                patientId: document.getElementById('a-patient').value,
+                procedure: document.getElementById('a-proc').value,
+                date: document.getElementById('a-date').value,
+                time: document.getElementById('a-time').value,
+                status: document.getElementById('a-status').value
+            };
+
+            if(id) {
+                const idx = all.findIndex(x => x.id === id);
+                all[idx] = { ...all[idx], ...data };
+            } else {
+                all.push({ id: genId(), ...data });
+            }
+
+            setDb('expert_appointments', all);
+            closeModal('modal-agenda');
+            renderAgenda();
+        });
+
+        function deleteAgenda(id) {
+            if(!confirm("Excluir este agendamento?")) return;
+            let all = getDb('expert_appointments').filter(x => x.id !== id);
+            setDb('expert_appointments', all);
+            renderAgenda();
+        }
+
+        // --- FINANCEIRO ---
+        function renderFinance() {
+            const trans = getClinicData('expert_transactions').sort((a,b) => new Date(b.date) - new Date(a.date));
+            const tbody = document.getElementById('finance-table');
+
+            let rev = 0; let exp = 0;
+            tbody.innerHTML = trans.map(t => {
+                const val = parseFloat(t.amount);
+                if(t.type === 'RECEITA') rev += val; else exp += val;
+                
+                const isRev = t.type === 'RECEITA';
+                return `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                    <td class="p-6 font-bold text-slate-500">${new Date(t.date).toLocaleDateString()}</td>
+                    <td class="p-6 font-black text-slate-800">${t.description}</td>
+                    <td class="p-6 text-xs font-bold text-slate-400">${t.category}</td>
+                    <td class="p-6 font-black ${isRev ? 'text-green-600' : 'text-red-600'}">${isRev?'+':'-'} R$ ${val.toFixed(2)}</td>
+                    <td class="p-6 text-right space-x-2">
+                        <button onclick="editFinance('${t.id}')" class="text-blue-500 hover:text-blue-700"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                        <button onclick="deleteFinance('${t.id}')" class="text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('fin-rev').innerText = `R$ ${rev.toFixed(2)}`;
+            document.getElementById('fin-exp').innerText = `R$ ${exp.toFixed(2)}`;
+            document.getElementById('fin-net').innerText = `R$ ${(rev - exp).toFixed(2)}`;
+            lucide.createIcons();
+        }
+
+        function openFinanceModal() {
+            document.getElementById('form-finance').reset();
+            document.getElementById('f-id').value = '';
+            document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+            openModal('modal-finance');
+        }
+
+        function editFinance(id) {
+            const t = getClinicData('expert_transactions').find(x => x.id === id);
+            if(!t) return;
+            document.getElementById('f-id').value = t.id;
+            document.getElementById('f-desc').value = t.description;
+            document.getElementById('f-amount').value = t.amount;
+            document.getElementById('f-date').value = t.date;
+            document.getElementById('f-type').value = t.type;
+            document.getElementById('f-cat').value = t.category;
+            openModal('modal-finance');
+        }
+
+        document.getElementById('form-finance').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('f-id').value;
+            let all = getDb('expert_transactions');
+            
+            const data = {
+                clinicId: currentClinicId,
+                description: document.getElementById('f-desc').value,
+                amount: document.getElementById('f-amount').value,
+                date: document.getElementById('f-date').value,
+                type: document.getElementById('f-type').value,
+                category: document.getElementById('f-cat').value
+            };
+
+            if(id) {
+                const idx = all.findIndex(x => x.id === id);
+                all[idx] = { ...all[idx], ...data };
+            } else {
+                all.push({ id: genId(), ...data });
+            }
+
+            setDb('expert_transactions', all);
+            closeModal('modal-finance');
+            renderFinance();
+        });
+
+        function deleteFinance(id) {
+            if(!confirm("Excluir este lançamento financeiro?")) return;
+            let all = getDb('expert_transactions').filter(x => x.id !== id);
+            setDb('expert_transactions', all);
+            renderFinance();
+        }
+
+        // --- CRM (LEADS) ---
+        function renderCRM() {
+            const leads = getClinicData('expert_leads');
+            const cols =['NOVO', 'AVALIACAO', 'PROPOSTA', 'CONVERTIDO', 'PERDIDO'];
+            
+            cols.forEach(col => document.getElementById(`crm-${col}`).innerHTML = '');
+
+            leads.forEach(l => {
+                const isFinal = l.status === 'CONVERTIDO' || l.status === 'PERDIDO';
+                let moveBtns = '';
+                
+                if(!isFinal) {
+                    const nextStat = cols[cols.indexOf(l.status) + 1];
+                    const prevStat = cols[cols.indexOf(l.status) - 1];
+                    
+                    if(prevStat) moveBtns += `<button onclick="moveLead('${l.id}', '${prevStat}')" class="p-1.5 bg-slate-100 rounded text-slate-500 hover:text-purple-600"><i data-lucide="chevron-left" class="w-3 h-3"></i></button>`;
+                    if(nextStat) moveBtns += `<button onclick="moveLead('${l.id}', '${nextStat}')" class="p-1.5 bg-slate-100 rounded text-slate-500 hover:text-purple-600"><i data-lucide="chevron-right" class="w-3 h-3"></i></button>`;
+                    moveBtns += `<button onclick="moveLead('${l.id}', 'PERDIDO')" class="p-1.5 bg-red-50 rounded text-red-500 ml-auto"><i data-lucide="x" class="w-3 h-3"></i></button>`;
+                }
+
+                const card = `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-purple-300 transition group relative">
+                    <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                        <button onclick="editLead('${l.id}')" class="text-blue-500"><i data-lucide="edit" class="w-3 h-3"></i></button>
+                        <button onclick="deleteLead('${l.id}')" class="text-red-500"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                    </div>
+                    <p class="font-black text-slate-800 text-sm mb-1 pr-10">${l.name}</p>
+                    <p class="text-[10px] font-bold text-slate-500 mb-1">${l.contact}</p>
+                    <p class="text-[9px] font-black bg-purple-50 text-purple-600 w-fit px-2 py-0.5 rounded-md uppercase tracking-widest mb-3">${l.procedure}</p>
+                    <div class="flex gap-1 items-center">${moveBtns}</div>
+                </div>`;
+                
+                const colEl = document.getElementById(`crm-${l.status}`);
+                if(colEl) colEl.innerHTML += card;
+            });
+            lucide.createIcons();
+        }
+
+        function openLeadModal() {
+            document.getElementById('form-lead').reset();
+            document.getElementById('l-id').value = '';
+            document.getElementById('l-status').value = 'NOVO';
+            openModal('modal-lead');
+        }
+
+        function editLead(id) {
+            const l = getClinicData('expert_leads').find(x => x.id === id);
+            if(!l) return;
+            document.getElementById('l-id').value = l.id;
+            document.getElementById('l-name').value = l.name;
+            document.getElementById('l-contact').value = l.contact;
+            document.getElementById('l-proc').value = l.procedure;
+            document.getElementById('l-source').value = l.source;
+            document.getElementById('l-status').value = l.status;
+            openModal('modal-lead');
+        }
+
+        document.getElementById('form-lead').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('l-id').value;
+            let all = getDb('expert_leads');
+            
+            const data = {
+                clinicId: currentClinicId,
+                name: document.getElementById('l-name').value,
+                contact: document.getElementById('l-contact').value,
+                procedure: document.getElementById('l-proc').value,
+                source: document.getElementById('l-source').value,
+                status: document.getElementById('l-status').value
+            };
+
+            if(id) {
+                const idx = all.findIndex(x => x.id === id);
+                all[idx] = { ...all[idx], ...data };
+            } else {
+                all.push({ id: genId(), ...data });
+            }
+
+            setDb('expert_leads', all);
+            closeModal('modal-lead');
+            renderCRM();
+        });
+
+        function moveLead(id, newStatus) {
+            let all = getDb('expert_leads');
+            const idx = all.findIndex(x => x.id === id);
+            if(idx > -1) {
+                all[idx].status = newStatus;
+                setDb('expert_leads', all);
+                renderCRM();
+            }
+        }
+
+        function deleteLead(id) {
+            if(!confirm("Excluir este Lead?")) return;
+            let all = getDb('expert_leads').filter(x => x.id !== id);
+            setDb('expert_leads', all);
+            renderCRM();
+        }
+
+        // Init icons
         window.onload = () => lucide.createIcons();
     </script>
 </body>
